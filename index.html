@@ -2,125 +2,52 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- viewport-fit=cover 用于适配 iPhone 的刘海屏/灵动岛，防内容被遮挡 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>吴欣怡的英语拼写大冒险</title>
     
-    <!-- ========================================== -->
-    <!--          CRITICAL APPLE PWA CONFIG         -->
-    <!-- ========================================== -->
-    <!-- 开启 iOS 独立全屏模式 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 状态栏设置为透明：应用内容会延伸到灵动岛/刘海屏下方，呈现沉浸式全屏 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- 添加到主屏幕后的 App 快捷方式名称 -->
     <meta name="apple-mobile-web-app-title" content="拼写冒险">
-    
-    <!-- 桌面图标 (推荐 180x180 像素的黄金自适应图标) -->
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluent/180/000000/wizard.png">
     
-    <!-- 启动画面 Splash Screen (适配目前主流全面屏 iPhone) -->
-    <!-- iPhone 14/15/16 Pro & Standard 适配 -->
-    <link rel="apple-touch-startup-image" href="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)">
-    <!-- iPhone 14/15/16 Pro Max 适配 -->
-    <link rel="apple-touch-startup-image" href="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
-    <!-- ========================================== -->
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/dist/confetti.browser.min.js"></script>
     
     <style>
-        /* 引入苹果系统字体与安全区适配 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
             background-color: #f5f5f7; 
             color: #1d1d1f; 
-            /* 适配全面屏底部的黑条（Home Indicator）安全距离 */
             padding-bottom: env(safe-area-inset-bottom);
-            /* 适配灵动岛/刘海屏顶部的安全距离 */
             padding-top: calc(env(safe-area-inset-top) + 12px);
         }
-        
-        html, body { 
-            position: relative;
-            overflow: hidden; /* 防止 PWA 全屏模式下意外的上下拉橡皮筋导致页面错位 */
-            height: 100%;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* 苹果标志性的胶囊进度条 */
-        .progress-container { 
-            width: 100%; 
-            background-color: #e8e8ed; 
-            border-radius: 999px; 
-            padding: 2px; 
-        }
-        .progress-bar { 
-            height: 6px; 
-            border-radius: 999px; 
-            background-color: #0071e3; 
-            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
-        }
-
+        html, body { position: relative; overflow: hidden; height: 100%; -webkit-overflow-scrolling: touch; }
+        .progress-container { width: 100%; background-color: #e8e8ed; border-radius: 999px; padding: 2px; }
+        .progress-bar { height: 6px; border-radius: 999px; background-color: #0071e3; transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
-        
         .celebrate { animation: celebrate 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         @keyframes celebrate { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-        
         .ghost-input { position: absolute; top: -9999px; left: -9999px; opacity: 0; }
-
-        #word-display {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-height: 160px;
-            max-height: 46vh;
-            overflow-y: auto;
-            scrollbar-width: none;
-        }
+        #word-display { display: flex; flex-direction: column; gap: 12px; min-height: 160px; max-height: 46vh; overflow-y: auto; scrollbar-width: none; }
         #word-display::-webkit-scrollbar { display: none; }
-
-        #netImageContainer {
-            width: 110px;
-            height: 110px;
-            flex-shrink: 0;
-            margin: 0 auto;
-        }
-        @media (min-width: 640px) {
-            #netImageContainer { width: 130px; height: 130px; }
-        }
-
+        #netImageContainer { width: 110px; height: 110px; flex-shrink: 0; margin: 0 auto; }
+        @media (min-width: 640px) { #netImageContainer { width: 130px; height: 130px; } }
         #letterSlots { margin-top: auto; padding: 8px 0; min-height: 48px; }
-
-        /* 键盘按键跟手交互效果与高亮 */
-        #virtualKeyboard button {
-            transition: background-color 0.1s ease, transform 0.1s ease;
-        }
-        #virtualKeyboard button:active {
-            background-color: #545456 !important; 
-            transform: scale(0.95); 
-        }
-
-        /* 专门适配 iOS PWA 模式下的输入重定向防抖 */
-        input:focus, select:focus {
-            outline: none;
-        }
+        #virtualKeyboard button { transition: background-color 0.1s ease, transform 0.1s ease; }
+        #virtualKeyboard button:active { background-color: #545456 !important; transform: scale(0.95); }
     </style>
 </head>
 <body class="min-h-screen p-4 flex flex-col items-center justify-between select-none touch-none bg-[#f5f5f7]">
 
     <!-- 密码锁屏界面 -->
-    <!-- 将此处的 onkeydown 改为标准的 Event 处理方式防止老旧 API 失效 -->
     <div id="passwordScreen" class="w-full max-w-sm bg-white/80 backdrop-blur-xl p-8 my-auto rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.04)] text-center border border-white/40">
         <div class="text-5xl mb-4">🔑</div>
         <h2 class="text-xl font-semibold tracking-tight text-[#1d1d1f] mb-1">拼写大冒险</h2>
         <p class="text-[#86868b] text-xs mb-6">请输入通关密码以继续</p>
         <input type="password" id="sitePassword" class="w-full p-3 bg-[#f5f5f7] rounded-xl text-center text-xl tracking-widest focus:bg-white focus:ring-2 focus:ring-[#0071e3] mb-4 transition border border-transparent" placeholder="••••••" onkeydown="if(event.key==='Enter') verifyPassword()">
-        <button onclick="verifyPassword()" class="w-full bg-[#0071e3] hover:bg-[#0077ed] text-white py-3 rounded-xl font-medium text-sm transition active:opacity-80 shadow-sm">
-            进入关卡
-        </button>
+        <button onclick="verifyPassword()" class="w-full bg-[#0071e3] hover:bg-[#0077ed] text-white py-3 rounded-xl font-medium text-sm transition active:opacity-80 shadow-sm">进入关卡</button>
         <p id="passwordError" class="text-[#ff3b30] text-xs font-normal mt-3 hidden">密码错误，请再试一次</p>
     </div>
 
@@ -129,22 +56,19 @@
         
         <!-- 顶部全局导航与设置 -->
         <div>
-            <h1 class="text-lg font-semibold text-center my-2 tracking-tight text-[#1d1d1f]">
-                吴欣怡的英语拼写大冒险
-            </h1>
+            <h1 class="text-lg font-semibold text-center my-2 tracking-tight text-[#1d1d1f]">吴欣怡的英语拼写大冒险</h1>
             
             <div class="w-full flex flex-col gap-2.5 mb-3 bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.01)] border border-[#e8e8ed]">
                 <div class="flex gap-2">
                     <div class="relative w-1/2">
-                        <select id="groupSelector" onchange="updateUnitOptions()" class="w-full p-2.5 bg-[#f5f5f7] rounded-xl text-[#1d1d1f] font-medium text-xs cursor-pointer border border-transparent text-center appearance-none">
+                        <select id="groupSelector" onchange="updateUnitOptions()" class="w-full p-2.5 bg-[#f5f5f7] rounded-xl text-[#1d1d1f] font-medium text-xs cursor-pointer text-center appearance-none">
                             <option value="newConcept">🎒 少儿新概念</option>
                             <option value="schoolClass">🏫 学校课堂组</option>
                             <option value="ieltsClass">🏫 雅思词汇</option>
                         </select>
                     </div>
                     <div class="relative w-1/2">
-                        <select id="unitSelector" onchange="loadNewUnit()" class="w-full p-2.5 bg-[#f5f5f7] rounded-xl text-[#1d1d1f] font-medium text-xs cursor-pointer border border-transparent text-center appearance-none">
-                        </select>
+                        <select id="unitSelector" onchange="loadNewUnit()" class="w-full p-2.5 bg-[#f5f5f7] rounded-xl text-[#1d1d1f] font-medium text-xs cursor-pointer text-center appearance-none"></select>
                     </div>
                 </div>
                 
@@ -184,26 +108,24 @@
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-4 my-2 w-full">
                     <div id="emoji" class="text-6xl filter drop-shadow-sm flex-shrink-0">🍎</div>
                     <div id="netImageContainer" class="hidden rounded-xl overflow-hidden bg-white shadow-sm border border-[#e8e8ed] transition-all duration-300">
-                        <img id="netImage" src="" class="w-full h-full object-cover" alt="word illustration" onerror="handleImageError()">
+                        <img id="netImage" src="" class="w-full h-full object-cover" alt="illustration" onerror="handleImageError()">
                     </div>
                 </div>
                 
-                <!-- 卡片背诵模式下的文字区（包含音标与隐藏翻转逻辑） -->
+                <!-- 卡片背诵模式文本区 -->
                 <div id="cardTextDisplay" class="hidden flex-col items-center justify-center my-2">
-                    <div id="cardWord" class="text-3xl font-bold tracking-tight text-[#1d1d1f] select-text">apple</div>
+                    <div id="cardWord" class="text-3xl font-bold tracking-tight text-[#1d1d1f]">apple</div>
                     <div id="cardPhonetic" class="text-xs text-[#86868b] font-mono mt-0.5"></div>
                     <div id="cardDesc" class="text-base text-[#86868b] font-medium mt-1">苹果</div>
                 </div>
 
-                <!-- 拼读挑战模式下的中文提示+音标组合区 -->
+                <!-- 拼读挑战提示区 -->
                 <div id="hintBtnContainer" class="min-h-[28px] flex items-center justify-center w-full">
                     <div id="descContainer" class="hidden flex flex-col items-center gap-0.5">
                         <span id="desc" class="text-sm text-[#1d1d1f] font-medium">正在加载...</span>
-                        <span id="phonetic" class="text-xs text-[#86868b] font-normal font-mono"></span>
+                        <span id="phonetic" class="text-xs text-[#86868b] font-mono"></span>
                     </div>
-                    <button id="hintBtn" onclick="event.stopPropagation(); toggleHint();" class="text-[11px] bg-white border border-[#d2d2d7] text-[#1d1d1f] px-3 py-1 rounded-full shadow-xs hover:bg-[#f5f5f7]">
-                        显示中文提示
-                    </button>
+                    <button id="hintBtn" onclick="event.stopPropagation(); toggleHint();" class="text-[11px] bg-white border border-[#d2d2d7] text-[#1d1d1f] px-3 py-1 rounded-full shadow-xs hover:bg-[#f5f5f7]">显示中文提示</button>
                     <span id="cardTip" class="hidden text-[11px] text-[#86868b] bg-[#e8e8ed] px-2.5 py-0.5 rounded-full">轻点卡片翻转</span>
                 </div>
                 
@@ -215,33 +137,22 @@
                 <div id="letterSlots" class="flex justify-center flex-wrap gap-1.5 text-xl font-semibold text-[#1d1d1f] tracking-wide min-h-[48px]"></div>
             </div>
 
-            <!-- 用于捕获移动端原生数字及物理蓝牙键盘的隐形输入框 -->
             <input type="text" id="userInput" class="ghost-input" autocomplete="off" spellcheck="false" oninput="filterInput(this)" onkeydown="if(event.key==='Enter') check()">
             
+            <!-- 拼读模式按钮组 -->
             <div id="spellActionButtons" class="grid grid-cols-2 gap-2 mt-4">
-                <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs transition flex items-center justify-center gap-1">
-                    <span>听发音</span> <span>🔊</span>
-                </button>
-                <button onclick="event.stopPropagation(); check();" class="bg-[#0071e3] hover:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs transition shadow-sm">
-                    检查结果
-                </button>
+                <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
+                <button onclick="event.stopPropagation(); check();" class="bg-[#0071e3] hover:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs shadow-sm">检查结果</button>
             </div>
 
+            <!-- 卡片模式按钮组（已修复翻页绑定） -->
             <div id="cardActionButtons" class="hidden grid grid-cols-3 gap-2 mt-4">
-                <button onclick="event.stopPropagation(); prevWord();" class="bg-[#f5f5f7] text-[#1d1d1f] py-2.5 rounded-xl font-medium text-xs transition">
-                    上一个
-                </button>
-                <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs transition flex items-center justify-center gap-1">
-                    <span>听发音 🔊</span>
-                </button>
-                <button onclick="event.stopPropagation(); nextWord();" class="bg-[#0071e3] hover:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs transition shadow-sm">
-                    下一个
-                </button>
+                <button onclick="event.stopPropagation(); prevWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#1d1d1f] py-2.5 rounded-xl font-medium text-xs transition">上一个</button>
+                <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
+                <button onclick="event.stopPropagation(); nextWord();" class="bg-[#0071e3] active:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs shadow-sm transition">下一个</button>
             </div>
 
-            <button onclick="event.stopPropagation(); reviewWrongWords();" id="reviewBtn" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white py-2 rounded-xl font-medium text-xs hidden mt-2 shadow-sm">
-                温习错题库 (0)
-            </button>
+            <button onclick="event.stopPropagation(); reviewWrongWords();" id="reviewBtn" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white py-2 rounded-xl font-medium text-xs hidden mt-2 shadow-sm">温习错题库 (0)</button>
         </div>
 
         <!-- 虚拟键盘 -->
@@ -252,7 +163,6 @@
         </div>
     </div>
 
-    <!-- 全局防抖高兼容度音频播放核心 -->
     <audio id="globalAudioPlayer" style="display: none;"></audio>
 
     <script>
@@ -307,7 +217,6 @@
         let maxAllowedLetters = 0;  
         let currentImgRetryLevel = 0; 
         let currentPhonetic = ""; 
-        
         let currentMode = 'spell';
         let cardSide = 'front';
         let wordBank = [], wrongWords = [];
@@ -328,7 +237,6 @@
             let letterIdx = 0; 
             for(let i=0; i<slots.length; i++) {
                 if(slots[i].dataset.special === "true") continue; 
-                
                 if(letterIdx < currentInputValue.length) {
                     slots[i].innerText = currentInputValue[letterIdx];
                     slots[i].className = "text-[#0071e3] font-bold border-b-2 border-[#0071e3] px-1 min-w-[14px] text-center lowercase";
@@ -347,7 +255,6 @@
                 KBD_ROWS[rowIdx].forEach(key => {
                     const btn = document.createElement('button');
                     btn.innerText = key;
-                    
                     if(key === "⌫") {
                         btn.className = "flex-1 bg-[#636366] text-white font-normal text-base py-2.5 rounded-md active:bg-[#48484a] transition touch-none shadow-xs";
                         btn.onclick = (e) => { e.preventDefault(); handleKeyInput("BACKSPACE"); };
@@ -393,13 +300,9 @@
                     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
                     osc.start(); osc.stop(ctx.currentTime + 0.25);
                 }
-
                 if (navigator.vibrate) {
-                    if (type === 'success') {
-                        navigator.vibrate(35); 
-                    } else {
-                        navigator.vibrate([50, 40, 50]); 
-                    }
+                    if (type === 'success') navigator.vibrate(35); 
+                    else navigator.vibrate([50, 40, 50]);
                 }
             } catch(e){}
         }
@@ -441,10 +344,8 @@
             if(!word) return;
             const cleanWord = word.trim().toLowerCase().replace(/['’]/g, '');
             currentImgRetryLevel = 0; 
-            
             const imgEl = document.getElementById('netImage');
             const container = document.getElementById('netImageContainer');
-            
             container.classList.add('hidden'); 
             imgEl.src = `https://pic.sogou.com/pic/download.jsp?v=5&keyword=${encodeURIComponent(cleanWord + " illustration")}&w=300&h=300`;
             container.classList.remove('hidden');
@@ -454,7 +355,6 @@
             const cleanWord = (currentWord.word || "").trim().toLowerCase().replace(/['’]/g, '');
             const imgEl = document.getElementById('netImage');
             const container = document.getElementById('netImageContainer');
-            
             if (currentImgRetryLevel === 0) {
                 currentImgRetryLevel = 1;
                 imgEl.src = `https://tse1-mm.cn.bing.net/th/id/OIP?q=${encodeURIComponent(cleanWord)}&w=240&h=240&c=7&rs=1&p=0&dpr=1&pid=1.7`;
@@ -468,13 +368,9 @@
             const cleanWord = word.trim().toLowerCase().replace(/[^a-zA-Z\s']/g, '');
             const phoneticEl = document.getElementById('phonetic');
             const cardPhoneticEl = document.getElementById('cardPhonetic');
-            
-            currentPhonetic = "";
-            phoneticEl.innerText = "";
-            cardPhoneticEl.innerText = "";
+            currentPhonetic = ""; phoneticEl.innerText = ""; cardPhoneticEl.innerText = "";
 
             const url = `https://dict.youdao.com/suggest?q=${encodeURIComponent(cleanWord)}&le=en&doctype=json`;
-            
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
@@ -485,18 +381,13 @@
                             const match = entry.explain.match(/\[.*?\]/);
                             if (match) ph = match[0];
                         }
-                        
                         if (ph) {
                             currentPhonetic = ph.startsWith('[') ? ph : `[${ph}]`;
                             phoneticEl.innerText = currentPhonetic;
                             cardPhoneticEl.innerText = currentPhonetic;
                         }
                     }
-                })
-                .catch(() => {
-                    phoneticEl.innerText = "";
-                    cardPhoneticEl.innerText = "";
-                });
+                }).catch(() => {});
         }
 
         function shuffle(array) {
@@ -516,7 +407,7 @@
                         wordBank = shuffle(r.data);
                         currentIndex = 0; wrongWords = [];
                         document.getElementById('reviewBtn').classList.add('hidden');
-                        loadNext(); 
+                        showCurrentIndexWord(); 
                     } else { showLoadError("数据空空如也"); }
                 }
             });
@@ -569,7 +460,6 @@
                 slotsArea.classList.remove('hidden');
                 cardText.classList.add('hidden');
                 document.getElementById('descContainer').classList.add('hidden');
-                // 自动拉起输入监听
                 setTimeout(() => document.getElementById('userInput').focus(), 200);
             } else {
                 spellBtn.className = "flex-1 py-1.5 rounded-lg font-medium text-xs text-[#86868b] transition";
@@ -585,8 +475,10 @@
             renderCurrentWordState();
         }
 
-        function loadNext() {
+        // 统一负责渲染当前 currentIndex 的单词
+        function showCurrentIndexWord() {
             let activeBank = isReviewMode ? wrongWords : wordBank;
+            
             if(currentIndex >= activeBank.length) {
                 if(isReviewMode) {
                     triggerEpicFireworks();
@@ -602,7 +494,9 @@
                 currentIndex = 0;
                 activeBank = isReviewMode ? wrongWords : wordBank;
             }
-            
+
+            if(currentIndex < 0) currentIndex = 0;
+
             currentWord = activeBank[currentIndex];
             if(currentWord && currentWord.word) {
                 currentWord.word = currentWord.word.trim();
@@ -672,7 +566,6 @@
                 renderCurrentWordState();
                 if(cardSide === 'back') speakWord();
             } else {
-                // 拼读模式下轻点任何卡片空白区，自动重新唤起聚焦
                 document.getElementById('userInput').focus();
             }
         }
@@ -701,12 +594,11 @@
                 setTimeout(() => {
                     mainCard.classList.remove('celebrate');
                     currentIndex++;
-                    loadNext();
+                    showCurrentIndexWord();
                 }, 400);
             } else {
                 playSound('error');
                 mainCard.classList.add('shake');
-                // 错题库推入去重逻辑
                 if(!wrongWords.some(w => w.word === currentWord.word)) {
                     wrongWords.push(currentWord);
                     updateWrongWordsButton();
@@ -720,15 +612,19 @@
             }
         }
 
+        // 修复：卡片背诵模式下的完美前后翻页函数
         function prevWord() {
-            if(currentIndex > 1) {
-                currentIndex -= 2;
-                loadNext();
+            if(currentIndex > 0) {
+                currentIndex--;
+                showCurrentIndexWord();
+            } else {
+                alert("已经是第一张卡片了哦！");
             }
         }
 
         function nextWord() {
-            loadNext();
+            currentIndex++;
+            showCurrentIndexWord();
         }
 
         function updateProgress() {
@@ -749,7 +645,7 @@
             if(wrongWords.length === 0) return;
             isReviewMode = true;
             currentIndex = 0;
-            loadNext();
+            showCurrentIndexWord();
         }
 
         function triggerEpicFireworks() {

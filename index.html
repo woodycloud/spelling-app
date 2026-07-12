@@ -88,6 +88,7 @@
                     <select id="groupSelector" onchange="updateUnitOptions()" class="w-1/2 p-2 bg-white rounded-xl text-amber-800 font-black text-xs focus:outline-none shadow-sm cursor-pointer border border-amber-200">
                         <option value="newConcept">🎒 少儿新概念</option>
                         <option value="schoolClass">🏫 学校课堂组</option>
+                        <option value="ieltsClass">🏫 雅思</option>
                     </select>
                     <select id="unitSelector" onchange="loadNewUnit()" class="w-1/2 p-2 bg-white rounded-xl text-amber-800 font-black text-xs focus:outline-none shadow-sm cursor-pointer border border-amber-200">
                     </select>
@@ -220,7 +221,18 @@
                 { text: "课堂组 months", value: "data/school_months.csv" },
                 { text: "课堂组 Cardinal numbers", value: "data/school_cardinal_numbers.csv" },
                 { text: "课堂组 Ordinal numbers", value: "data/school_ordinal_numbers.csv" }
-            ]
+            ],
+            ieltsClass: [
+                { text: "ives_Business_Economy", value: "data/ives_Business_Economy.csv" },
+                { text: "ives_Education_Learning", value: "data/ives_Education_Learning.csv" },
+                { text: "ives_Emotions_Abstract", value: "data/ives_Emotions_Abstract.csv" },
+                { text: "ives_Environment_Nature", value: "data/ives_Environment_Nature.csv" },
+                { text: "ives_Health_Body", value: "data/ives_Health_Body.csv" },
+                { text: "ives_Science_Technology", value: "data/ives_Science_Technology.csv" },
+                { text: "ives_Society_People", value: "data/ives_Society_People.csv" },
+                { text: "ives_Travel_Transport", value: "data/ives_Travel_Transport.csv" }
+              
+            ] 
         };
 
         const KBD_ROWS = [

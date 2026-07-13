@@ -15,33 +15,64 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/dist/confetti.browser.min.js"></script>
     
     <style>
+        /* 全局 iOS PWA 体验优化：禁用系统默认的长按弹出菜单与文字误选中 */
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        input, textarea, [contenteditable="true"] {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
             background-color: #f5f5f7; 
             color: #1d1d1f; 
-            padding-bottom: env(safe-area-inset-bottom);
+            /* 适配 iPhone 全面屏底部黑条安全区，并在键盘下方留出舒适的空隙 */
+            padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
             padding-top: calc(env(safe-area-inset-top) + 12px);
         }
         html, body { position: relative; overflow: hidden; height: 100%; -webkit-overflow-scrolling: touch; }
         .progress-container { width: 100%; background-color: #e8e8ed; border-radius: 999px; padding: 2px; }
         .progress-bar { height: 6px; border-radius: 999px; background-color: #0071e3; transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
         .celebrate { animation: celebrate 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         @keyframes celebrate { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        
         .ghost-input { position: absolute; top: -9999px; left: -9999px; opacity: 0; }
         #word-display { display: flex; flex-direction: column; gap: 12px; min-height: 160px; max-height: 46vh; overflow-y: auto; scrollbar-width: none; }
         #word-display::-webkit-scrollbar { display: none; }
+        
         #netImageContainer { width: 110px; height: 110px; flex-shrink: 0; margin: 0 auto; }
-        @media (min-width: 640px) { #netImageContainer { width: 130px; height: 130px; } }
         #letterSlots { margin-top: auto; padding: 8px 0; min-height: 48px; }
+        
         #virtualKeyboard button { transition: background-color 0.1s ease, transform 0.1s ease; }
         #virtualKeyboard button:active { background-color: #545456 !important; transform: scale(0.95); }
+
+        /* 🖥️ iPad / 平板级别专属响应式布局优化 */
+        @media (min-width: 768px) {
+            #netImageContainer { 
+                width: 155px; 
+                height: 155px; 
+            }
+            #emoji { 
+                font-size: 5rem !important; 
+            }
+            #virtualKeyboard { 
+                max-width: 480px; 
+                margin-left: auto; 
+                margin-right: auto; 
+                border-radius: 20px; 
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen p-4 flex flex-col items-center justify-between select-none touch-none bg-[#f5f5f7]">
+<body class="min-h-screen p-4 flex flex-col items-center justify-between">
 
-    <!-- 密码锁屏界面 -->
     <div id="passwordScreen" class="w-full max-w-sm bg-white/80 backdrop-blur-xl p-8 my-auto rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.04)] text-center border border-white/40">
         <div class="text-5xl mb-4">🔑</div>
         <h2 class="text-xl font-semibold tracking-tight text-[#1d1d1f] mb-1">✨ Welcome to Xinyi SpellQuest ✨<br>Master Words. Explore Worlds.</h2>
@@ -51,32 +82,24 @@
         <p id="passwordError" class="text-[#ff3b30] text-xs font-normal mt-3 hidden">Wrong passkey，Try again</p>
     </div>
 
-    <!-- 主游戏界面 -->
     <div id="gameContent" class="w-full max-w-md hidden flex flex-col flex-1 justify-between h-full">
         
-        <!-- 顶部全局导航与设置 -->
         <div>
             <div class="flex justify-between items-center my-2 px-1">
-                <!-- 整合了探险主题Logo与标题的左对齐容器 -->
                 <div class="flex items-center gap-2 flex-1">
                     <svg class="w-8 h-8 drop-shadow-xs flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-                        <!-- 探险帽 -->
                         <path d="M40,90 C40,40 160,40 160,90 L170,110 C140,115 60,115 30,110 Z" fill="#a1887f"/>
                         <ellipse cx="100" cy="110" rx="75" ry="10" fill="#8d6e63"/>
-                        <!-- 脸部与五官 -->
                         <circle cx="100" cy="125" r="30" fill="#ffcc80"/>
                         <circle cx="90" cy="120" r="3" fill="#333"/>
                         <circle cx="110" cy="120" r="3" fill="#333"/>
                         <path d="M92,130 Q100,140 108,130" fill="none" stroke="#ff7043" stroke-width="2" stroke-linecap="round"/>
-                        <!-- 头发 -->
                         <path d="M68,120 Q65,145 75,145 M132,120 Q135,145 125,145" fill="none" stroke="#5d4037" stroke-width="8" stroke-linecap="round"/>
-                        <!-- 魔法笔 -->
                         <g transform="translate(145, 140) rotate(-35)">
                             <rect x="-3" y="-20" width="6" height="30" rx="2" fill="#81d4fa"/>
                             <polygon points="0,-28 -4,-20 4,-20" fill="#fff59d"/>
                             <circle cx="0" cy="-32" r="4" fill="#e0f7fa" opacity="0.8"/>
                         </g>
-                        <!-- 漂浮的 ABC 字母 -->
                         <g font-family="Arial, sans-serif" font-weight="bold" font-size="22" text-anchor="middle">
                             <text x="50" y="55" fill="#4285f4" transform="rotate(-15 50 55)">A</text>
                             <text x="100" y="35" fill="#ea4335">B</text>
@@ -121,7 +144,6 @@
             </div>
         </div>
 
-        <!-- 核心内容卡片 -->
         <div id="mainCard" class="bg-white p-5 rounded-[24px] shadow-[0_12px_30px_rgba(0,0,0,0.03)] border border-[#e8e8ed] relative overflow-hidden my-auto flex-1 flex flex-col justify-between cursor-pointer">
             
             <div class="mb-3">
@@ -142,14 +164,12 @@
                     </div>
                 </div>
                 
-                <!-- 卡片背诵模式文本区 -->
                 <div id="cardTextDisplay" class="hidden flex-col items-center justify-center my-2">
                     <div id="cardWord" class="text-3xl font-bold tracking-tight text-[#1d1d1f]">apple</div>
                     <div id="cardPhonetic" class="text-xs text-[#86868b] font-mono mt-0.5"></div>
                     <div id="cardDesc" class="text-base text-[#86868b] font-medium mt-1">苹果</div>
                 </div>
 
-                <!-- 拼读挑战提示区 -->
                 <div id="hintBtnContainer" class="min-h-[28px] flex items-center justify-center w-full">
                     <div id="descContainer" class="hidden flex flex-col items-center gap-0.5">
                         <span id="desc" class="text-sm text-[#1d1d1f] font-medium">正在加载...</span>
@@ -169,13 +189,11 @@
 
             <input type="text" id="userInput" class="ghost-input" autocomplete="off" spellcheck="false" oninput="filterInput(this)" onkeydown="if(event.key==='Enter') check()">
             
-            <!-- 拼读模式按钮组 -->
             <div id="spellActionButtons" class="grid grid-cols-2 gap-2 mt-4">
                 <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
                 <button onclick="event.stopPropagation(); check();" class="bg-[#0071e3] hover:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs shadow-sm">检查结果</button>
             </div>
 
-            <!-- 卡片模式按钮组 -->
             <div id="cardActionButtons" class="hidden grid grid-cols-3 gap-2 mt-4">
                 <button onclick="event.stopPropagation(); prevWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#1d1d1f] py-2.5 rounded-xl font-medium text-xs transition">上一个</button>
                 <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
@@ -185,7 +203,6 @@
             <button onclick="event.stopPropagation(); reviewWrongWords();" id="reviewBtn" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white py-2 rounded-xl font-medium text-xs hidden mt-2 shadow-sm">温习错题库 (0)</button>
         </div>
 
-        <!-- 虚拟键盘 -->
         <div id="virtualKeyboard" class="w-full bg-[#1c1c1e] p-2 pb-5 rounded-2xl shadow-2xl flex flex-col gap-1.5 mt-3">
             <div class="flex justify-center gap-1" id="kbd-row1"></div>
             <div class="flex justify-center gap-1" id="kbd-row2"></div>
@@ -364,6 +381,7 @@
                 renderVirtualKeyboard();
                 setupDragAndDrop();
                 setupSwipeGestures(); 
+                setupPhysicalKeyboardListener(); // 启动蓝牙/实体键盘监听
             } else {
                 inputStyle.classList.add('shake'); errorMsg.classList.remove('hidden'); inputStyle.value = '';
                 setTimeout(() => inputStyle.classList.remove('shake'), 400);
@@ -821,6 +839,37 @@
                     }
                 }
             }, {passive: true});
+        }
+
+        /* ⌨️ 实体外接键盘 / 蓝牙键盘 / 智能妙控键盘全局监听逻辑 */
+        function setupPhysicalKeyboardListener() {
+            window.addEventListener('keydown', function(e) {
+                // 如果目前在锁屏界面，不劫持输入
+                if (!document.getElementById('passwordScreen').classList.contains('hidden')) return;
+                
+                // 仅在拼读挑战模式下响应物理按键
+                if (currentMode !== 'spell') return;
+
+                // 允许退格键删除
+                if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    handleKeyInput('BACKSPACE');
+                    return;
+                }
+
+                // 允许回车键直接提交检查
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    check();
+                    return;
+                }
+
+                // 录入标准 26 个英文字母
+                if (/^[a-zA-Z]$/.test(e.key)) {
+                    e.preventDefault();
+                    handleKeyInput(e.key.toLowerCase());
+                }
+            });
         }
     </script>
 </body>

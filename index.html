@@ -15,7 +15,6 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/dist/confetti.browser.min.js"></script>
     
     <style>
-        /* 全局 iOS PWA 体验优化：禁用系统默认的长按弹出菜单与文字误选中 */
         * {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -30,7 +29,6 @@
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
             background-color: #f5f5f7; 
             color: #1d1d1f; 
-            /* 适配 iPhone 全面屏底部黑条安全区，并在键盘下方留出舒适的空隙 */
             padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
             padding-top: calc(env(safe-area-inset-top) + 12px);
         }
@@ -53,21 +51,10 @@
         #virtualKeyboard button { transition: background-color 0.1s ease, transform 0.1s ease; }
         #virtualKeyboard button:active { background-color: #545456 !important; transform: scale(0.95); }
 
-        /* 🖥️ iPad / 平板级别专属响应式布局优化 */
         @media (min-width: 768px) {
-            #netImageContainer { 
-                width: 155px; 
-                height: 155px; 
-            }
-            #emoji { 
-                font-size: 5rem !important; 
-            }
-            #virtualKeyboard { 
-                max-width: 480px; 
-                margin-left: auto; 
-                margin-right: auto; 
-                border-radius: 20px; 
-            }
+            #netImageContainer { width: 155px; height: 155px; }
+            #emoji { font-size: 5rem !important; }
+            #virtualKeyboard { max-width: 480px; margin-left: auto; margin-right: auto; border-radius: 20px; }
         }
     </style>
 </head>
@@ -190,17 +177,17 @@
             <input type="text" id="userInput" class="ghost-input" autocomplete="off" spellcheck="false" oninput="filterInput(this)" onkeydown="if(event.key==='Enter') check()">
             
             <div id="spellActionButtons" class="grid grid-cols-2 gap-2 mt-4">
-                <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
+                <button id="spellAudioBtn" onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
                 <button onclick="event.stopPropagation(); check();" class="bg-[#0071e3] hover:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs shadow-sm">检查结果</button>
             </div>
 
             <div id="cardActionButtons" class="hidden grid grid-cols-3 gap-2 mt-4">
                 <button onclick="event.stopPropagation(); prevWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#1d1d1f] py-2.5 rounded-xl font-medium text-xs transition">上一个</button>
-                <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
+                <button id="cardAudioBtn" onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
                 <button onclick="event.stopPropagation(); nextWord();" class="bg-[#0071e3] active:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs shadow-sm transition">下一个</button>
             </div>
 
-            <button onclick="event.stopPropagation(); reviewWrongWords();" id="reviewBtn" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white py-2 rounded-xl font-medium text-xs hidden mt-2 shadow-sm">温习错题库 (0)</button>
+            <button onclick="event.stopPropagation(); reviewWrongWords();" id="reviewBtn" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white py-2 rounded-xl font-medium text-xs hidden mt-2 shadow-sm">温息当前组错题 (0)</button>
         </div>
 
         <div id="virtualKeyboard" class="w-full bg-[#1c1c1e] p-2 pb-5 rounded-2xl shadow-2xl flex flex-col gap-1.5 mt-3">
@@ -266,19 +253,47 @@
         let currentPhonetic = ""; 
         let currentMode = 'spell';
         let cardSide = 'front';
-        let wordBank = [], wrongWords = [];
-        let currentWord = {}; let currentIndex = 0;
+        let isAudioPlaying = false; 
+        
+        let wordBank = [];
+        let wrongWords = []; 
+        
+        let currentWord = {}; 
+        let currentIndex = 0;
         let isReviewMode = false;
 
         let touchStartX = 0;
         let touchStartY = 0;
 
+        function getLocalStorageWrongKey() {
+            const currentGroup = document.getElementById('groupSelector').value || 'default';
+            return `spell_wrong_v2_${currentGroup}`;
+        }
+
+        function loadWrongWordsFromStorage() {
+            const key = getLocalStorageWrongKey();
+            const savedWrongs = localStorage.getItem(key);
+            wrongWords = []; 
+            if (savedWrongs) {
+                try { 
+                    const parsed = JSON.parse(savedWrongs); 
+                    if (Array.isArray(parsed)) wrongWords = parsed;
+                } catch(e) { wrongWords = []; }
+            }
+            updateWrongWordsButton();
+        }
+
+        function saveWrongWordsToStorage() {
+            const key = getLocalStorageWrongKey();
+            localStorage.setItem(key, JSON.stringify(wrongWords));
+        }
+
         function filterInput(input) {
             currentInputValue = input.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
             if (currentInputValue.length > maxAllowedLetters) {
                 currentInputValue = currentInputValue.slice(0, maxAllowedLetters);
-                input.value = currentInputValue;
             }
+            input.value = currentInputValue;
             updateSlotsHighlight();
         }
 
@@ -381,7 +396,7 @@
                 renderVirtualKeyboard();
                 setupDragAndDrop();
                 setupSwipeGestures(); 
-                setupPhysicalKeyboardListener(); // 启动蓝牙/实体键盘监听
+                setupPhysicalKeyboardListener();
             } else {
                 inputStyle.classList.add('shake'); errorMsg.classList.remove('hidden'); inputStyle.value = '';
                 setTimeout(() => inputStyle.classList.remove('shake'), 400);
@@ -390,8 +405,17 @@
 
         function onGroupChange() {
             isReviewMode = false;
-            localStorage.setItem('spell_saved_group', document.getElementById('groupSelector').value);
+            const selectValue = document.getElementById('groupSelector').value;
+            localStorage.setItem('spell_saved_group', selectValue);
             localStorage.removeItem('spell_saved_index'); 
+            
+            if (COURSE_DATA[selectValue] && COURSE_DATA[selectValue].length > 0) {
+                localStorage.setItem('spell_saved_unit', COURSE_DATA[selectValue][0].value);
+            } else {
+                localStorage.removeItem('spell_saved_unit');
+            }
+            
+            loadWrongWordsFromStorage(); 
             updateUnitOptions(false);
         }
 
@@ -419,11 +443,7 @@
                     const exists = units.some(u => u.value === savedUnit);
                     if (exists) unitSelector.value = savedUnit;
                 }
-                
-                const savedWrongs = localStorage.getItem('spell_saved_wrong_words');
-                if (savedWrongs) {
-                    try { wrongWords = JSON.parse(savedWrongs); updateWrongWordsButton(); } catch(e){}
-                }
+                loadWrongWordsFromStorage(); 
             }
 
             loadNewUnit(isInitialLoad);
@@ -573,49 +593,58 @@
 
         function showCurrentIndexWord() {
             let activeBank = isReviewMode ? wrongWords : wordBank;
-            
             document.getElementById('progressTitle').innerText = isReviewMode ? "错题消灭进度" : "冒险进度";
 
-            if(activeBank.length === 0 && isReviewMode) {
-                triggerEpicFireworks();
-                alert("🎉 太牛了！错题库已经全部消灭干净！");
-                isReviewMode = false;
-                localStorage.removeItem('spell_saved_wrong_words');
-                document.getElementById('reviewBtn').classList.add('hidden');
-                currentIndex = 0;
-                activeBank = wordBank;
+            if(isReviewMode && activeBank.length === 0) {
+                document.getElementById('progressText').innerText = `100%`;
+                document.getElementById('progressBar').style.width = `100%`;
+                setTimeout(() => {
+                    triggerEpicFireworks();
+                    alert("🎉 太牛了！当前课程组错题本已全部消灭干净！");
+                    isReviewMode = false;
+                    const savedIndex = localStorage.getItem('spell_saved_index');
+                    currentIndex = savedIndex ? parseInt(savedIndex, 10) : 0;
+                    showCurrentIndexWord();
+                }, 400);
+                return;
             }
 
             if(currentIndex >= activeBank.length && activeBank.length > 0) {
                 if(isReviewMode) {
-                    triggerEpicFireworks();
-                    alert("🎉 太牛了！错题库已经全部消灭干净！");
-                    isReviewMode = false;
-                    wrongWords = [];
-                    localStorage.removeItem('spell_saved_wrong_words');
-                    document.getElementById('reviewBtn').classList.add('hidden');
+                    document.getElementById('progressText').innerText = `100%`;
+                    document.getElementById('progressBar').style.width = `100%`;
+                    setTimeout(() => {
+                        triggerEpicFireworks();
+                        alert("🎉 太牛了！当前错题本消灭完毕，返回主进度！");
+                        isReviewMode = false;
+                        const savedIndex = localStorage.getItem('spell_saved_index');
+                        currentIndex = savedIndex ? parseInt(savedIndex, 10) : 0;
+                        showCurrentIndexWord();
+                    }, 400);
                 } else {
                     triggerEpicFireworks();
                     alert("🎉 太棒了！您已顺利通关本阶段所有卡片！");
+                    currentIndex = 0;
+                    showCurrentIndexWord();
                 }
-                currentIndex = 0;
-                activeBank = isReviewMode ? wrongWords : wordBank;
+                return;
             }
 
             if(currentIndex < 0) currentIndex = 0;
             
-            if (!isReviewMode) {
+            if (!isReviewMode && wordBank.length > 0) {
                 localStorage.setItem('spell_saved_index', currentIndex);
             }
 
             currentWord = activeBank[currentIndex];
-            if(currentWord && currentWord.word) {
-                currentWord.word = currentWord.word.trim();
-            } else {
-                return; 
-            }
+            if(!currentWord || !currentWord.word) return;
 
+            currentWord.word = currentWord.word.trim();
             cardSide = 'front';
+            
+            let modeLabel = isReviewMode ? ` (还需答对 ${currentWord.errorCount || 1} 次)` : "";
+            document.getElementById('progressTitle').innerText = (isReviewMode ? "错题消灭" : "冒险进度") + modeLabel;
+
             document.getElementById('emoji').innerText = currentWord.emoji || "📝";
             fetchNetworkImage(currentWord.word); 
             fetchPhonetic(currentWord.word);
@@ -693,12 +722,80 @@
             document.getElementById('hintBtn').classList.add('hidden');
         }
 
+        function setAudioButtonsState(isLoading) {
+            isAudioPlaying = isLoading;
+            const spellAudioBtn = document.getElementById('spellAudioBtn');
+            const cardAudioBtn = document.getElementById('cardAudioBtn');
+            if (isLoading) {
+                spellAudioBtn.innerHTML = "<span>播放中... ⏳</span>";
+                cardAudioBtn.innerHTML = "<span>播放中... ⏳</span>";
+                spellAudioBtn.disabled = true;
+                cardAudioBtn.disabled = true;
+            } else {
+                spellAudioBtn.innerHTML = "<span>听发音 🔊</span>";
+                cardAudioBtn.innerHTML = "<span>听发音 🔊</span>";
+                spellAudioBtn.disabled = false;
+                cardAudioBtn.disabled = false;
+            }
+        }
+
         function speakWord() {
-            if(!currentWord || !currentWord.word) return;
+            if(!currentWord || !currentWord.word || isAudioPlaying) return;
+            
+            setAudioButtonsState(true);
             const accent = document.querySelector('input[name="accentType"]:checked').value || "2";
             const player = document.getElementById('globalAudioPlayer');
+            
+            let hasFallbackTriggered = false;
+            let fallbackTimer = null;
+
+            const fallbackTTS = () => {
+                if (hasFallbackTriggered) return;
+                hasFallbackTriggered = true;
+                if (fallbackTimer) clearTimeout(fallbackTimer);
+                
+                try {
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel(); 
+                        const utterance = new SpeechSynthesisUtterance(currentWord.word);
+                        utterance.lang = accent === "1" ? 'en-GB' : 'en-US';
+                        
+                        let forceUnlockTimer = setTimeout(() => {
+                            setAudioButtonsState(false);
+                        }, 2500);
+
+                        utterance.onend = () => { clearTimeout(forceUnlockTimer); setAudioButtonsState(false); };
+                        utterance.onerror = () => { clearTimeout(forceUnlockTimer); setAudioButtonsState(false); };
+                        window.speechSynthesis.speak(utterance);
+                    } else {
+                        setAudioButtonsState(false);
+                    }
+                } catch(e) {
+                    setAudioButtonsState(false);
+                }
+            };
+
+            fallbackTimer = setTimeout(() => {
+                player.pause();
+                fallbackTTS();
+            }, 1800);
+
             player.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(currentWord.word)}&type=${accent}`;
-            player.play().catch(()=>{});
+            
+            player.onended = () => {
+                if (fallbackTimer) clearTimeout(fallbackTimer);
+                if (!hasFallbackTriggered) setAudioButtonsState(false);
+            };
+
+            player.onerror = () => {
+                if (fallbackTimer) clearTimeout(fallbackTimer);
+                fallbackTTS();
+            };
+
+            player.play().catch(()=>{
+                if (fallbackTimer) clearTimeout(fallbackTimer);
+                fallbackTTS();
+            });
         }
 
         function check() {
@@ -710,16 +807,27 @@
                 playSound('success');
                 mainCard.classList.add('celebrate');
                 
+                let activeBank = isReviewMode ? wrongWords : wordBank;
+                if(currentIndex === activeBank.length - 1) {
+                    document.getElementById('progressText').innerText = `100%`;
+                    document.getElementById('progressBar').style.width = `100%`;
+                }
+
                 setTimeout(() => {
                     mainCard.classList.remove('celebrate');
                     
                     if(isReviewMode) {
-                        wrongWords.splice(currentIndex, 1);
-                        localStorage.setItem('spell_saved_wrong_words', JSON.stringify(wrongWords));
+                        currentWord.errorCount = (currentWord.errorCount || 1) - 1;
+                        if(currentWord.errorCount <= 0) {
+                            wrongWords.splice(currentIndex, 1); 
+                        } else {
+                            currentIndex++; 
+                        }
+                        saveWrongWordsToStorage(); 
                         updateWrongWordsButton();
                         
                         if (currentIndex >= wrongWords.length && wrongWords.length > 0) {
-                            currentIndex = wrongWords.length - 1;
+                            currentIndex = 0; 
                         }
                     } else {
                         currentIndex++;
@@ -731,17 +839,30 @@
                 playSound('error');
                 mainCard.classList.add('shake');
                 
-                if(!isReviewMode && !wrongWords.some(w => w.word === currentWord.word)) {
-                    wrongWords.push(currentWord);
-                    localStorage.setItem('spell_saved_wrong_words', JSON.stringify(wrongWords));
-                    updateWrongWordsButton();
+                if(!isReviewMode) {
+                    let existingWrong = wrongWords.find(w => w.word === currentWord.word);
+                    if(!existingWrong) {
+                        let wrongItem = { ...currentWord, errorCount: 2 };
+                        wrongWords.push(wrongItem);
+                    } else {
+                        existingWrong.errorCount = 2; 
+                    }
+                } else {
+                    currentWord.errorCount = 2; 
                 }
+                
+                saveWrongWordsToStorage(); 
+                updateWrongWordsButton();
                 
                 setTimeout(() => {
                     mainCard.classList.remove('shake');
                     currentInputValue = "";
                     document.getElementById('userInput').value = "";
                     updateSlotsHighlight();
+                    if(isReviewMode) {
+                        let modeLabel = ` (还需答对 ${currentWord.errorCount || 1} 次)`;
+                        document.getElementById('progressTitle').innerText = "错题消灭" + modeLabel;
+                    }
                 }, 400);
             }
         }
@@ -779,13 +900,16 @@
 
         function updateWrongWordsButton() {
             const btn = document.getElementById('reviewBtn');
-            btn.innerText = `温习错题库 (${wrongWords.length})`;
-            if(wrongWords.length > 0) btn.classList.remove('hidden');
-            else btn.classList.add('hidden');
+            if(Array.isArray(wrongWords) && wrongWords.length > 0) {
+                btn.innerText = `温习当前组错题 (${wrongWords.length})`;
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
         }
 
         function reviewWrongWords() {
-            if(wrongWords.length === 0) return;
+            if(!Array.isArray(wrongWords) || wrongWords.length === 0) return;
             isReviewMode = true;
             currentIndex = 0;
             showCurrentIndexWord();
@@ -841,30 +965,23 @@
             }, {passive: true});
         }
 
-        /* ⌨️ 实体外接键盘 / 蓝牙键盘 / 智能妙控键盘全局监听逻辑 */
         function setupPhysicalKeyboardListener() {
             window.addEventListener('keydown', function(e) {
-                // 如果目前在锁屏界面，不劫持输入
                 if (!document.getElementById('passwordScreen').classList.contains('hidden')) return;
-                
-                // 仅在拼读挑战模式下响应物理按键
                 if (currentMode !== 'spell') return;
 
-                // 允许退格键删除
                 if (e.key === 'Backspace') {
                     e.preventDefault();
                     handleKeyInput('BACKSPACE');
                     return;
                 }
 
-                // 允许回车键直接提交检查
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     check();
                     return;
                 }
 
-                // 录入标准 26 个英文字母
                 if (/^[a-zA-Z]$/.test(e.key)) {
                     e.preventDefault();
                     handleKeyInput(e.key.toLowerCase());

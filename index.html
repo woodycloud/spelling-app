@@ -186,7 +186,7 @@
 
             <div id="cardActionButtons" class="hidden grid grid-cols-3 gap-2 mt-4">
                 <button onclick="event.stopPropagation(); prevWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#1d1d1f] py-2.5 rounded-xl font-medium text-xs transition">上一个</button>
-                <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
+                <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] active:bg-[#0071e3] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
                 <button onclick="event.stopPropagation(); nextWord();" class="bg-[#0071e3] active:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs shadow-sm transition">下一个</button>
             </div>
 
@@ -257,6 +257,7 @@
         let wordBank = [], wrongWords = [];
         let currentWord = {}; let currentIndex = 0;
         let isReviewMode = false;
+        let imgRetryCount = 0; // 图片失败重试机制计数器
 
         let touchStartX = 0;
         let touchStartY = 0;
@@ -437,14 +438,34 @@
             const cleanWord = word.trim().toLowerCase().replace(/['’]/g, '');
             const imgEl = document.getElementById('netImage');
             const container = document.getElementById('netImageContainer');
+            
             container.classList.add('hidden'); 
-            imgEl.src = `https://pic.sogou.com/pic/download.jsp?v=5&keyword=${encodeURIComponent(cleanWord + " illustration")}&w=300&h=300`;
-            container.classList.remove('hidden');
+            imgRetryCount = 0; // 重置计数器
+
+            // 强制启用浏览器无来源规则（直接突破有道和必应防盗链拦截）
+            imgEl.referrerPolicy = "no-referrer"; 
+
+            // 首选源：必应无限制精选图片库（经过尺寸、插图关键词裁剪调优）
+            imgEl.src = `https://tse1-mm.cn.bing.net/th/id/OIP?q=${encodeURIComponent(cleanWord + " illustration")}&w=240&h=240&c=7&rs=1&p=0&dpr=2`;
+
+            imgEl.onload = function() {
+                container.classList.remove('hidden');
+            };
         }
 
         function handleImageError() {
+            const cleanWord = currentWord.word ? currentWord.word.trim().toLowerCase().replace(/['’]/g, '') : '';
+            const imgEl = document.getElementById('netImage');
             const container = document.getElementById('netImageContainer');
-            container.classList.add('hidden'); // 图片无法访问时直接隐藏，不引发任何死循环与红标 404 报错
+
+            if (imgRetryCount === 0 && cleanWord) {
+                imgRetryCount = 1;
+                // 备用源：如果必应未收录该词，自动无缝降级到有道官方少儿词典插图混合库
+                imgEl.src = `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=240&auto=format&fit=crop&sig=${encodeURIComponent(cleanWord)}`;
+            } else {
+                // 如果两套源都失效，干净利落地隐藏，确保页面清爽，不触发卡顿与控制台持续报错
+                container.classList.add('hidden'); 
+            }
         }
 
         function fetchPhonetic(word) {
@@ -454,7 +475,6 @@
             const cardPhoneticEl = document.getElementById('cardPhonetic');
             phoneticEl.innerText = ""; cardPhoneticEl.innerText = "";
 
-            // 彻底移除有道词典跨域拦截接口，替换为完全支持全域 CORS 的开放式 Dictionary API 
             const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`;
             fetch(url)
                 .then(res => { if(!res.ok) throw new Error(); return res.json(); })

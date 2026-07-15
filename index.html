@@ -66,21 +66,21 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
-        /* 3D 卡片翻转舞台（新增 flex-grow 与自适应高度，确保在所有 iOS 设备上完美居中） */
+        /* 3D 卡片翻转舞台 */
         .card-perspective {
             perspective: 1200px;
             -webkit-perspective: 1200px;
             position: relative;
-            flex-grow: 1; /* 占据剩余中间全部高度 */
+            flex-grow: 1; 
             display: flex;
-            align-items: center; /* 内部 3D 容器垂直居中 */
+            align-items: center; 
             justify-content: center;
         }
         .card-inner {
             position: relative;
             width: 100%;
             height: 100%;
-            max-height: 380px; /* 约束卡片最大黄金高度，防止撑变形 */
+            max-height: 380px; 
             min-height: 300px;
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             -webkit-transition: -webkit-transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -92,7 +92,6 @@
             -webkit-transform: rotateY(180deg);
         }
         
-        /* 彻底修复 iOS Safari 穿透与遮挡 Bug */
         .card-front, .card-back {
             position: absolute;
             top: 0;
@@ -106,7 +105,6 @@
             justify-content: space-between;
         }
         
-        /* 强制通过 translateZ(1px) 硬件级拉开前后空间，防止渲染穿透 */
         .card-front {
             transform: rotateY(0deg) translateZ(1px);
             -webkit-transform: rotateY(0deg) translateZ(1px);
@@ -118,7 +116,7 @@
             z-index: 1;
         }
 
-        /* 流光掠影骨架屏 */
+        /* 骨架屏 */
         .shimmer {
             background: linear-gradient(90deg, #e5e5ea 25%, #f2f2f7 50%, #e5e5ea 75%);
             background-size: 200% 100%;
@@ -139,7 +137,6 @@
         .dark .progress-container { background-color: #38383a; }
         .progress-bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #007aff, #3498ff); transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         
-        /* 苹果标志性的丝滑阻尼弹性动画 */
         .shake { animation: ios-shake 0.45s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes ios-shake { 15%, 85% { transform: translate3d(-3px, 0, 0); } 30%, 70% { transform: translate3d(4px, 0, 0); } 45%, 65% { transform: translate3d(-5px, 0, 0); } 60% { transform: translate3d(5px, 0, 0); } }
         
@@ -148,7 +145,6 @@
         
         .ghost-input { position: absolute; top: -9999px; left: -9999px; opacity: 0; }
         
-        /* 虚拟键盘按键物理弹性恢复 */
         #virtualKeyboard button { transition: background-color 0.1s ease, transform 0.08s ease; }
         #virtualKeyboard button:active { background-color: #b0b0b5 !important; transform: scale(0.90); }
         .dark #virtualKeyboard button:active { background-color: #636366 !important; }
@@ -160,7 +156,7 @@
 </head>
 <body class="bg-iosBg-light dark:bg-iosBg-dark text-iosText-light dark:text-iosText-dark min-h-screen p-3 flex flex-col items-center justify-center">
 
-    <!-- iOS 暗黑模式手动切换 -->
+    <!-- 暗黑模式 -->
     <button onclick="toggleDarkMode()" class="fixed top-3 right-3 z-50 p-2 bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-full shadow-md border border-black/[0.05] dark:border-white/[0.1] active:scale-90 transition">
         <span class="dark:hidden text-lg">🌙</span>
         <span class="hidden dark:inline text-lg">☀️</span>
@@ -176,9 +172,8 @@
         <p id="passwordError" class="text-[#ff3b30] text-xs font-semibold mt-3 hidden">⚠️ Wrong passkey，Try again</p>
     </div>
 
-    <!-- 游戏主容器（使用 flex-col 且居中对齐，解决 iOS 下容器跑偏问题） -->
+    <!-- 游戏主容器 -->
     <div id="gameContent" class="w-full max-w-md hidden flex flex-col flex-1 justify-center h-full overflow-hidden">
-        <!-- 顶部操作栏 (锁定不被压缩) -->
         <div class="flex-shrink-0">
             <div class="flex justify-between items-center my-2 px-1">
                 <div class="flex items-center gap-2 flex-1">
@@ -206,7 +201,6 @@
                 <button onclick="resetAllProgress()" class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 hover:text-[#ff3b30] px-2.5 py-1 bg-white dark:bg-[#2c2c2e] border border-black/[0.05] dark:border-white/[0.05] rounded-full shadow-sm transition flex-shrink-0">🔄 重置进度</button>
             </div>
             
-            <!-- 分组与设置卡片 -->
             <div class="w-full flex flex-col gap-2 mb-2 bg-white dark:bg-iosCard-dark p-2.5 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-black/[0.02] dark:border-white/[0.02]">
                 <div class="flex gap-2">
                     <div class="relative w-1/2 bg-[#f2f2f7] dark:bg-zinc-800 rounded-xl px-1">
@@ -233,7 +227,6 @@
                     </div>
                 </div>
 
-                <!-- 模式切换 -->
                 <div class="flex bg-gray-200/80 dark:bg-zinc-800/80 p-0.5 rounded-xl">
                     <button id="mode-spell-btn" onclick="switchMode('spell')" class="flex-1 py-1 rounded-lg font-semibold text-xs bg-white dark:bg-zinc-700 shadow-sm transition-all duration-200 text-iosText-light dark:text-iosText-dark">拼读挑战</button>
                     <button id="mode-card-btn" onclick="switchMode('card')" class="flex-1 py-1 rounded-lg font-semibold text-xs text-gray-400 dark:text-gray-500 transition-all duration-200">卡片背诵</button>
@@ -241,11 +234,11 @@
             </div>
         </div>
 
-        <!-- 3D卡片翻转舞台（稳定高度区间，iOS完美垂直居中） -->
+        <!-- 3D卡片舞台 -->
         <div id="mainCard" class="card-perspective my-3">
             <div id="cardInner" class="card-inner">
                 
-                <!-- 3D 卡片正面 -->
+                <!-- 卡片正面 -->
                 <div class="card-front bg-white dark:bg-iosCard-dark p-4 rounded-[24px] ios-depth border border-black/[0.01] dark:border-white/[0.02]">
                     <div>
                         <div class="flex justify-between items-center text-[10px] font-semibold text-gray-400 dark:text-gray-500 mb-1 px-0.5">
@@ -257,11 +250,10 @@
                         </div>
                     </div>
 
-                    <!-- 核心内容展示窗 (精细微调防穿透，比例绝佳) -->
+                    <!-- 内容展示窗 -->
                     <div class="p-3 bg-[#f2f2f7]/60 dark:bg-zinc-800/40 rounded-xl text-center flex-1 flex flex-col justify-center items-center min-h-[130px] relative border border-black/[0.01] dark:border-white/[0.02] my-2">
                         <div class="flex items-center justify-center gap-3 my-1 w-full">
                             <div id="emoji" class="text-5xl filter drop-shadow-sm flex-shrink-0 transition-transform duration-300">🍎</div>
-                            <!-- 彻底锁定尺寸的防溢出容器 -->
                             <div id="netImageContainer" class="hidden relative w-[95px] h-[95px] sm:w-[115px] sm:h-[115px] rounded-[16px] overflow-hidden bg-white dark:bg-zinc-800 shadow-sm border border-black/5 dark:border-white/5 flex-shrink-0" style="min-width: 95px; min-height: 95px; max-width: 115px; max-height: 115px;">
                                 <div id="imageShimmer" class="shimmer absolute inset-0 z-10"></div>
                                 <img id="netImage" src="" class="opacity-0 transition-opacity duration-500 z-20 block" alt="illustration" onerror="handleImageError()" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: cover !important; position: absolute !important; top: 0 !important; left: 0 !important;">
@@ -281,13 +273,12 @@
                         <div id="letterSlots" class="flex justify-center flex-wrap gap-1 text-xl font-bold tracking-wide min-h-[44px] mt-auto w-full px-1"></div>
                     </div>
 
-                    <!-- 拼写模式操作按钮 -->
+                    <!-- 操作按钮 -->
                     <div id="spellActionButtons" class="grid grid-cols-2 gap-2 mt-auto">
                         <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f2f2f7] dark:bg-zinc-800 hover:bg-[#e5e5ea] text-[#007aff] py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all"><span>听发音 🔊</span></button>
                         <button onclick="event.stopPropagation(); check();" class="bg-[#007aff] hover:bg-[#0066d6] text-white py-2.5 rounded-xl font-semibold text-xs shadow-sm active:scale-[0.98] transition-all">检查结果</button>
                     </div>
 
-                    <!-- 借用背诵模式正面遮罩按钮 -->
                     <div id="cardFrontActionButtons" class="hidden mt-auto">
                         <button onclick="event.stopPropagation(); flipToBack();" class="w-full bg-[#007aff] hover:bg-[#0066d6] text-white py-3 rounded-xl font-semibold text-xs shadow-md shadow-[#007aff]/10 transition active:scale-95">
                             👀 显示答案 (Show Answer)
@@ -296,7 +287,7 @@
                     </div>
                 </div>
 
-                <!-- 3D 卡片背面 -->
+                <!-- 卡片背面 -->
                 <div class="card-back bg-white dark:bg-iosCard-dark p-4 rounded-[24px] ios-depth border border-black/[0.01] dark:border-white/[0.02]">
                     <div>
                         <div class="flex justify-between items-center text-[10px] font-semibold text-gray-400 dark:text-gray-500 mb-1 px-0.5">
@@ -308,14 +299,12 @@
                         </div>
                     </div>
 
-                    <!-- 背面内容 -->
                     <div class="p-3 bg-[#f2f2f7]/60 dark:bg-zinc-800/40 rounded-xl text-center flex-1 flex flex-col justify-center items-center min-h-[130px] border border-black/[0.01] dark:border-white/[0.02] my-2">
                         <div id="cardWord" class="text-3xl font-extrabold tracking-tight text-iosText-light dark:text-iosText-dark"></div>
                         <div id="cardPhonetic" class="text-xs text-gray-400 dark:text-gray-500 font-mono mt-0.5"></div>
                         <div id="cardDesc" class="text-lg text-[#007aff] dark:text-[#3498ff] font-semibold mt-2"></div>
                     </div>
 
-                    <!-- Anki 按钮 -->
                     <div id="ankiGradingButtons" class="grid grid-cols-3 gap-2 mt-auto">
                         <button onclick="event.stopPropagation(); handleAnkiFeedback('again');" class="bg-[#ff3b30]/10 hover:bg-[#ff3b30]/15 text-[#ff3b30] py-2 rounded-xl font-bold text-xs transition border border-[#ff3b30]/15 active:scale-95 flex flex-col items-center">
                             <span>🔴 重来</span>
@@ -335,10 +324,8 @@
             </div>
         </div>
         
-        <!-- 温习错题库控制组件 -->
         <button onclick="reviewWrongWords()" id="reviewBtn" class="w-full bg-[#ff3b30]/90 hover:bg-[#ff3b30] text-white py-1.5 rounded-xl font-semibold text-xs hidden shadow-sm active:scale-95 transition-all mb-1.5 flex-shrink-0">温习错题库 (0)</button>
 
-        <!-- 本地导入 -->
         <div id="localDropZone" class="hidden p-2.5 mb-1.5 border border-dashed border-[#c7c7cc] bg-white dark:bg-iosCard-dark rounded-xl text-[10px] font-medium text-gray-400 cursor-pointer w-full text-center hover:bg-gray-50 dark:hover:bg-zinc-800 transition flex-shrink-0">
             请点击此处手动导入本地词库 CSV 文件
             <input type="file" id="localFileInp" class="hidden" accept=".csv" onchange="handleFileSelect(this)">
@@ -346,7 +333,6 @@
 
         <input type="text" id="userInput" class="ghost-input" autocomplete="off" spellcheck="false" oninput="filterInput(this)" onkeydown="if(event.key==='Enter') check()">
         
-        <!-- 虚拟键盘区 (已取消空格键，大幅释放垂直空间) -->
         <div id="virtualKeyboard" class="w-full bg-[#d1d1d6]/70 dark:bg-zinc-800/70 backdrop-blur-xl p-1 rounded-2xl shadow-inner flex flex-col gap-1 flex-shrink-0">
             <div class="flex justify-center gap-1" id="kbd-row1"></div>
             <div class="flex justify-center gap-1" id="kbd-row2"></div>
@@ -354,7 +340,6 @@
         </div>
     </div>
 
-    <!-- 毛玻璃 Toast -->
     <div id="iosToast" class="fixed bottom-1/3 left-1/2 -translate-x-1/2 bg-black/80 dark:bg-white/90 text-white dark:text-black text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 transform translate-y-2 z-50">提示</div>
 
     <audio id="globalAudioPlayer" style="display: none;"></audio>
@@ -460,8 +445,13 @@
             }, { passive: false });
         }
 
+        // 苹果端深度输入净化过滤器 (只保留字母，空格和横杠在渲染格子时自动匹配，不需要用户输入)
         function filterInput(input) {
-            currentInputValue = input.value.replace(/[^a-zA-Z\s\-]/g, '').toLowerCase();
+            let val = input.value;
+            // 过滤掉所有非英文字母
+            val = val.replace(/[^a-zA-Z]/g, '');
+            
+            currentInputValue = val.toLowerCase();
             if (currentInputValue.length > maxAllowedLetters) {
                 currentInputValue = currentInputValue.slice(0, maxAllowedLetters);
             }
@@ -469,19 +459,32 @@
             updateSlotsHighlight();
         }
 
+        // 动态高亮更新：自动忽略空格，只往字母槽填充输入
         function updateSlotsHighlight() {
             const slots = document.getElementById('letterSlots').children;
-            let letterIdx = 0; 
-            for(let i=0; i<slots.length; i++) {
+            let inputIdx = 0; 
+            for(let i = 0; i < slots.length; i++) {
                 if(slots[i].dataset.special === "true") continue; 
-                if(letterIdx < currentInputValue.length) {
-                    slots[i].innerText = currentInputValue[letterIdx];
+                
+                const expectedChar = slots[i].dataset.char;
+                
+                // 如果当前槽位是空格，则展示空格，且不消耗当前输入字母
+                if (expectedChar === " ") {
+                    slots[i].innerHTML = "&nbsp;";
+                    slots[i].className = "border-b border-transparent w-4 text-center";
+                    continue; 
+                }
+                
+                // 字母槽处理
+                if(inputIdx < currentInputValue.length) {
+                    const typedChar = currentInputValue[inputIdx];
+                    slots[i].innerText = typedChar;
                     slots[i].className = "text-[#007aff] dark:text-[#3498ff] font-bold border-b-2 border-[#007aff] px-1 transition-all duration-150 transform translate-y-0 lowercase scale-110";
                 } else {
                     slots[i].innerText = "•";
                     slots[i].className = "text-[#c7c7cc] dark:text-zinc-600 px-1 transition-all duration-150 transform translate-y-0.5";
                 }
-                letterIdx++;
+                inputIdx++;
             }
         }
 
@@ -671,16 +674,24 @@
             }
         }
 
+        // 彻底隔离音标 API：404 不干扰拼读逻辑
         function fetchPhonetic(word) {
-            if (!word) return;
-            const cleanWord = word.trim().toLowerCase().replace(/[^a-zA-Z\s']/g, '');
             const phoneticEl = document.getElementById('phonetic');
             const cardPhoneticEl = document.getElementById('cardPhonetic');
-            phoneticEl.innerText = ""; cardPhoneticEl.innerText = "";
+            phoneticEl.innerText = ""; 
+            cardPhoneticEl.innerText = "";
 
+            if (!word) return;
+            if (word.trim().includes(" ")) return; // 略过短语
+
+            const cleanWord = word.trim().toLowerCase().replace(/[^a-zA-Z']/g, '');
             const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`;
+            
             fetch(url)
-                .then(res => { if(!res.ok) throw new Error(); return res.json(); })
+                .then(res => {
+                    if (!res.ok) throw new Error();
+                    return res.json();
+                })
                 .then(data => {
                     if (data && data[0] && data[0].phonetic) {
                         const ph = data[0].phonetic;
@@ -691,7 +702,8 @@
                             phoneticEl.innerText = validPh.text; cardPhoneticEl.innerText = validPh.text;
                         }
                     }
-                }).catch(() => {
+                })
+                .catch(() => {
                     phoneticEl.innerText = ""; cardPhoneticEl.innerText = "";
                 });
         }
@@ -821,8 +833,8 @@
             currentInputValue = "";
             document.getElementById('userInput').value = "";
             
-            // 【后台脱敏验证一】：计算单词长度限制时，统一将其转化为小写计算，解决大写答案对输入长度的干扰
-            maxAllowedLetters = (currentWord.word || "").toLowerCase().replace(/[^a-z\s\-]/g, '').length;
+            // 最大允许输入的有效字母长度（不包含空格和标点符号）
+            maxAllowedLetters = (currentWord.word || "").replace(/[^a-zA-Z]/g, "").length;
             
             renderSlots(currentWord.word);
             renderCurrentWordState();
@@ -923,17 +935,17 @@
                 paddingClass = "px-0.5 min-w-[8px]";
             }
 
-            // 【后台脱敏验证二】：渲染格子底线时，即使标准词库内有大写，格子的核心展示内容也是彻底的“不限大小写”
-            for(let i=0; i<word.length; i++) {
+            for(let i = 0; i < word.length; i++) {
                 const char = word[i];
                 const span = document.createElement('span');
+                span.dataset.char = char.toLowerCase();
+                
                 if(/[a-zA-Z]/.test(char)) {
                     span.innerText = "•";
                     span.className = `text-[#c7c7cc] dark:text-zinc-600 transition-all duration-150 transform translate-y-0.5 ${fontSizeClass} ${paddingClass} text-center`;
                 } else if(char === " ") {
                     span.innerHTML = "&nbsp;";
-                    span.className = `border-b border-gray-300 dark:border-zinc-700 ${fontSizeClass} ${paddingClass} text-center`;
-                    span.dataset.special = "true";
+                    span.className = `border-b border-transparent ${fontSizeClass} ${paddingClass} w-4 text-center`;
                 } else {
                     span.innerText = char;
                     span.className = `text-iosText-light dark:text-iosText-dark font-mono ${fontSizeClass} px-0.5 min-w-[6px] text-center`;
@@ -971,13 +983,12 @@
             player.play().catch(()=>{});
         }
 
-        // 【后台脱敏验证三】：校验逻辑彻底解除大小写限制
         function check() {
             if(currentMode !== 'spell' || !currentWord.word) return;
             
-            // 剔除干扰符号，两边全部强制转换为纯小写对比！
-            const target = currentWord.word.trim().toLowerCase().replace(/[^a-z\s\-]/g, '');
-            const cleanInput = currentInputValue.trim().toLowerCase().replace(/[^a-z\s\-]/g, '');
+            // 比较时：移除所有非字母字符（包括空格和标点）进行纯字母比对
+            const target = currentWord.word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            const cleanInput = currentInputValue.replace(/[^a-zA-Z]/g, '').toLowerCase();
             const cardInner = document.getElementById('cardInner');
 
             if(cleanInput === target) {
@@ -1006,8 +1017,8 @@
             } else {
                 playSound('error');
                 cardInner.classList.add('shake');
-                // 加入错题库时也忽略大小写，避免重复加入
-                if(!isReviewMode && !wrongWords.some(w => w.word.toLowerCase().replace(/[^a-z\s\-]/g, '') === target)) {
+                
+                if(!isReviewMode && !wrongWords.some(w => w.word.toLowerCase().replace(/[^a-zA-Z]/g, '') === target)) {
                     wrongWords.push(currentWord);
                     localStorage.setItem('spell_saved_wrong_words', JSON.stringify(wrongWords));
                     updateWrongWordsButton();
@@ -1141,7 +1152,7 @@
                         check();
                         return;
                     }
-                    if (/^[a-zA-Z\s\-]$/.test(e.key)) {
+                    if (/^[a-zA-Z]$/.test(e.key)) {
                         e.preventDefault();
                         handleKeyInput(e.key.toLowerCase());
                     }

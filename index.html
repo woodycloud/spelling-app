@@ -287,7 +287,7 @@
                         <button onclick="event.stopPropagation(); check();" class="bg-[#007aff] hover:bg-[#0066d6] text-white py-2.5 rounded-xl font-semibold text-xs shadow-sm active:scale-[0.98] transition-all">检查结果</button>
                     </div>
 
-                    <!-- 背诵模式正面遮罩按钮 -->
+                    <!-- 借用背诵模式正面遮罩按钮 -->
                     <div id="cardFrontActionButtons" class="hidden mt-auto">
                         <button onclick="event.stopPropagation(); flipToBack();" class="w-full bg-[#007aff] hover:bg-[#0066d6] text-white py-3 rounded-xl font-semibold text-xs shadow-md shadow-[#007aff]/10 transition active:scale-95">
                             👀 显示答案 (Show Answer)
@@ -820,7 +820,9 @@
             
             currentInputValue = "";
             document.getElementById('userInput').value = "";
-            maxAllowedLetters = (currentWord.word || "").replace(/[^a-zA-Z\s\-]/g, '').length;
+            
+            // 【后台脱敏验证一】：计算单词长度限制时，统一将其转化为小写计算，解决大写答案对输入长度的干扰
+            maxAllowedLetters = (currentWord.word || "").toLowerCase().replace(/[^a-z\s\-]/g, '').length;
             
             renderSlots(currentWord.word);
             renderCurrentWordState();
@@ -921,6 +923,7 @@
                 paddingClass = "px-0.5 min-w-[8px]";
             }
 
+            // 【后台脱敏验证二】：渲染格子底线时，即使标准词库内有大写，格子的核心展示内容也是彻底的“不限大小写”
             for(let i=0; i<word.length; i++) {
                 const char = word[i];
                 const span = document.createElement('span');
@@ -968,11 +971,14 @@
             player.play().catch(()=>{});
         }
 
+        // 【后台脱敏验证三】：校验逻辑彻底解除大小写限制
         function check() {
             if(currentMode !== 'spell' || !currentWord.word) return;
-            const target = currentWord.word.replace(/[^a-zA-Z\s\-]/g, '').toLowerCase();
+            
+            // 剔除干扰符号，两边全部强制转换为纯小写对比！
+            const target = currentWord.word.trim().toLowerCase().replace(/[^a-z\s\-]/g, '');
+            const cleanInput = currentInputValue.trim().toLowerCase().replace(/[^a-z\s\-]/g, '');
             const cardInner = document.getElementById('cardInner');
-            const cleanInput = currentInputValue.replace(/[^a-zA-Z\s\-]/g, '').toLowerCase();
 
             if(cleanInput === target) {
                 playSound('success');
@@ -1000,7 +1006,8 @@
             } else {
                 playSound('error');
                 cardInner.classList.add('shake');
-                if(!isReviewMode && !wrongWords.some(w => w.word === currentWord.word)) {
+                // 加入错题库时也忽略大小写，避免重复加入
+                if(!isReviewMode && !wrongWords.some(w => w.word.toLowerCase().replace(/[^a-z\s\-]/g, '') === target)) {
                     wrongWords.push(currentWord);
                     localStorage.setItem('spell_saved_wrong_words', JSON.stringify(wrongWords));
                     updateWrongWordsButton();

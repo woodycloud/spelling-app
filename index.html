@@ -66,32 +66,50 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
-        /* 3D 卡片翻转效果 */
+        /* 3D 卡片翻转舞台（解决 iOS 高度坍塌，确保位置居中） */
         .card-perspective {
             perspective: 1200px;
+            -webkit-perspective: 1200px;
+            position: relative;
         }
         .card-inner {
             position: relative;
             width: 100%;
             height: 100%;
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            -webkit-transition: -webkit-transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
         }
         .card-inner.is-flipped {
             transform: rotateY(180deg);
+            -webkit-transform: rotateY(180deg);
         }
+        
+        /* 彻底修复 iOS Safari 穿透与遮挡 Bug */
         .card-front, .card-back {
             position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
+            -webkit-backface-visibility: hidden; /* 必须加前缀 */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
+        
+        /* 强制通过 translateZ(1px) 硬件级拉开前后空间，防止渲染穿透 */
+        .card-front {
+            transform: rotateY(0deg) translateZ(1px);
+            -webkit-transform: rotateY(0deg) translateZ(1px);
+            z-index: 2;
+        }
         .card-back {
-            transform: rotateY(180deg);
+            transform: rotateY(180deg) translateZ(1px);
+            -webkit-transform: rotateY(180deg) translateZ(1px);
+            z-index: 1;
         }
 
         /* 流光掠影骨架屏 */
@@ -217,8 +235,8 @@
             </div>
         </div>
 
-        <!-- 3D卡片翻转舞台 -->
-        <div id="mainCard" class="card-perspective flex-1 flex flex-col justify-between my-2 relative min-h-[260px] max-h-[340px]">
+        <!-- 3D卡片翻转舞台（稳定高度区间，防止掉落底层） -->
+        <div id="mainCard" class="card-perspective flex-1 flex flex-col my-2 relative min-h-[300px] h-[340px] max-h-[360px]">
             <div id="cardInner" class="card-inner w-full h-full">
                 
                 <!-- 3D 卡片正面 -->

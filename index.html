@@ -66,16 +66,22 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
-        /* 3D 卡片翻转舞台（解决 iOS 高度坍塌，确保位置居中） */
+        /* 3D 卡片翻转舞台（新增 flex-grow 与自适应高度，确保在所有 iOS 设备上完美居中） */
         .card-perspective {
             perspective: 1200px;
             -webkit-perspective: 1200px;
             position: relative;
+            flex-grow: 1; /* 占据剩余中间全部高度 */
+            display: flex;
+            align-items: center; /* 内部 3D 容器垂直居中 */
+            justify-content: center;
         }
         .card-inner {
             position: relative;
             width: 100%;
             height: 100%;
+            max-height: 380px; /* 约束卡片最大黄金高度，防止撑变形 */
+            min-height: 300px;
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             -webkit-transition: -webkit-transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
@@ -94,7 +100,7 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            -webkit-backface-visibility: hidden; /* 必须加前缀 */
+            -webkit-backface-visibility: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -152,7 +158,7 @@
         }
     </style>
 </head>
-<body class="bg-iosBg-light dark:bg-iosBg-dark text-iosText-light dark:text-iosText-dark min-h-screen p-3 flex flex-col items-center justify-between">
+<body class="bg-iosBg-light dark:bg-iosBg-dark text-iosText-light dark:text-iosText-dark min-h-screen p-3 flex flex-col items-center justify-center">
 
     <!-- iOS 暗黑模式手动切换 -->
     <button onclick="toggleDarkMode()" class="fixed top-3 right-3 z-50 p-2 bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-full shadow-md border border-black/[0.05] dark:border-white/[0.1] active:scale-90 transition">
@@ -170,9 +176,9 @@
         <p id="passwordError" class="text-[#ff3b30] text-xs font-semibold mt-3 hidden">⚠️ Wrong passkey，Try again</p>
     </div>
 
-    <!-- 游戏主容器 -->
-    <div id="gameContent" class="w-full max-w-md hidden flex flex-col flex-1 justify-between h-full overflow-hidden">
-        <!-- 顶部操作栏 -->
+    <!-- 游戏主容器（使用 flex-col 且居中对齐，解决 iOS 下容器跑偏问题） -->
+    <div id="gameContent" class="w-full max-w-md hidden flex flex-col flex-1 justify-center h-full overflow-hidden">
+        <!-- 顶部操作栏 (锁定不被压缩) -->
         <div class="flex-shrink-0">
             <div class="flex justify-between items-center my-2 px-1">
                 <div class="flex items-center gap-2 flex-1">
@@ -235,9 +241,9 @@
             </div>
         </div>
 
-        <!-- 3D卡片翻转舞台（稳定高度区间，防止掉落底层） -->
-        <div id="mainCard" class="card-perspective flex-1 flex flex-col my-2 relative min-h-[300px] h-[340px] max-h-[360px]">
-            <div id="cardInner" class="card-inner w-full h-full">
+        <!-- 3D卡片翻转舞台（稳定高度区间，iOS完美垂直居中） -->
+        <div id="mainCard" class="card-perspective my-3">
+            <div id="cardInner" class="card-inner">
                 
                 <!-- 3D 卡片正面 -->
                 <div class="card-front bg-white dark:bg-iosCard-dark p-4 rounded-[24px] ios-depth border border-black/[0.01] dark:border-white/[0.02]">
@@ -251,7 +257,7 @@
                         </div>
                     </div>
 
-                    <!-- 核心内容展示窗 (精细调整尺寸) -->
+                    <!-- 核心内容展示窗 (精细微调防穿透，比例绝佳) -->
                     <div class="p-3 bg-[#f2f2f7]/60 dark:bg-zinc-800/40 rounded-xl text-center flex-1 flex flex-col justify-center items-center min-h-[130px] relative border border-black/[0.01] dark:border-white/[0.02] my-2">
                         <div class="flex items-center justify-center gap-3 my-1 w-full">
                             <div id="emoji" class="text-5xl filter drop-shadow-sm flex-shrink-0 transition-transform duration-300">🍎</div>

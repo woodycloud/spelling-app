@@ -154,7 +154,7 @@
                     </div>
                 </div>
                 
-                <div id="cardTextDisplay" class="hidden flex-col items-center justify-center my-2">
+                <div id="cardTextDisplay" class="hidden flex flex-col items-center justify-center my-2">
                     <div id="cardWord" class="text-3xl font-bold tracking-tight text-[#1d1d1f]">apple</div>
                     <div id="cardPhonetic" class="text-xs text-[#86868b] font-mono mt-0.5"></div>
                     <div id="cardDesc" class="text-base text-[#86868b] font-medium mt-1">苹果</div>
@@ -166,7 +166,7 @@
                         <span id="phonetic" class="text-xs text-[#86868b] font-mono"></span>
                     </div>
                     <button id="hintBtn" onclick="event.stopPropagation(); toggleHint();" class="text-[11px] bg-white border border-[#d2d2d7] text-[#1d1d1f] px-3 py-1 rounded-full shadow-xs hover:bg-[#f5f5f7]">显示中文提示</button>
-                    <span id="cardTip" class="hidden text-[11px] text-[#86868b] bg-[#e8e8ed] px-2.5 py-0.5 rounded-full">轻点卡片翻转 / 左右滑动翻页</span>
+                    <span id="cardTip" class="hidden text-[11px] text-[#86868b] bg-[#e8e8ed] px-2.5 py-0.5 rounded-full">轻点卡片显示答案 / 支持键盘快捷键</span>
                 </div>
                 
                 <div id="localDropZone" class="hidden p-3 border border-dashed border-[#d2d2d7] bg-white rounded-xl text-[11px] text-[#86868b] cursor-pointer w-full text-center">
@@ -184,10 +184,27 @@
                 <button onclick="event.stopPropagation(); check();" class="bg-[#0071e3] hover:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs shadow-sm">检查结果</button>
             </div>
 
-            <div id="cardActionButtons" class="hidden grid grid-cols-3 gap-2 mt-4">
-                <button onclick="event.stopPropagation(); prevWord();" class="bg-[#f5f5f7] active:bg-[#e8e8ed] text-[#1d1d1f] py-2.5 rounded-xl font-medium text-xs transition">上一个</button>
-                <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f5f5f7] active:bg-[#0071e3] text-[#0071e3] py-2.5 rounded-xl font-medium text-xs flex items-center justify-center gap-1"><span>听发音 🔊</span></button>
-                <button onclick="event.stopPropagation(); nextWord();" class="bg-[#0071e3] active:bg-[#0077ed] text-white py-2.5 rounded-xl font-medium text-xs shadow-sm transition">下一个</button>
+            <div id="cardActionButtons" class="hidden flex flex-col gap-2.5 mt-4 w-full">
+                <!-- 未翻面状态：只显示查看答案 -->
+                <button id="showAnswerBtn" onclick="event.stopPropagation(); flipToBack();" class="w-full bg-[#0071e3] hover:bg-[#0077ed] text-white py-3 rounded-xl font-semibold text-sm shadow-sm transition active:scale-95">
+                    👀 显示答案 (Show Answer)
+                </button>
+                
+                <!-- 已翻面状态：展示 Anki 评分梯度 -->
+                <div id="ankiGradingButtons" class="hidden grid grid-cols-3 gap-2 w-full">
+                    <button onclick="event.stopPropagation(); handleAnkiFeedback('again');" class="bg-[#ff3b30]/10 hover:bg-[#ff3b30]/20 text-[#ff3b30] py-2.5 rounded-xl font-bold text-xs transition border border-[#ff3b30]/30 active:scale-95 flex flex-col items-center">
+                        <span>🔴 重来</span>
+                        <span class="text-[9px] font-normal opacity-70">Again</span>
+                    </button>
+                    <button onclick="event.stopPropagation(); handleAnkiFeedback('good');" class="bg-[#ff9500]/10 hover:bg-[#ff9500]/20 text-[#ff9500] py-2.5 rounded-xl font-bold text-xs transition border border-[#ff9500]/30 active:scale-95 flex flex-col items-center">
+                        <span>🟡 一般</span>
+                        <span class="text-[9px] font-normal opacity-70">Good</span>
+                    </button>
+                    <button onclick="event.stopPropagation(); handleAnkiFeedback('easy');" class="bg-[#34c759]/10 hover:bg-[#34c759]/20 text-[#34c759] py-2.5 rounded-xl font-bold text-xs transition border border-[#34c759]/30 active:scale-95 flex flex-col items-center">
+                        <span>🟢 简单</span>
+                        <span class="text-[9px] font-normal opacity-70">Easy</span>
+                    </button>
+                </div>
             </div>
 
             <button onclick="event.stopPropagation(); reviewWrongWords();" id="reviewBtn" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white py-2 rounded-xl font-medium text-xs hidden mt-2 shadow-sm">温习错题库 (0)</button>
@@ -255,6 +272,7 @@
         let currentMode = 'spell';
         let cardSide = 'front';
         let wordBank = [], wrongWords = [];
+        let masteredWords = new Set(); // 记录已经熟练掌握的单词(Easy)
         let currentWord = {}; let currentIndex = 0;
         let isReviewMode = false;
         let imgRetryCount = 0; // 图片失败重试机制计数器
@@ -379,6 +397,7 @@
 
         function onGroupChange() {
             isReviewMode = false;
+            masteredWords.clear();
             const selectValue = document.getElementById('groupSelector').value;
             localStorage.setItem('spell_saved_group', selectValue);
             localStorage.removeItem('spell_saved_index'); 
@@ -393,6 +412,7 @@
 
         function onUnitChange() {
             isReviewMode = false;
+            masteredWords.clear();
             localStorage.setItem('spell_saved_unit', document.getElementById('unitSelector').value);
             localStorage.removeItem('spell_saved_index'); 
             loadNewUnit();
@@ -425,9 +445,10 @@
         }
 
         function resetAllProgress() {
-            if (confirm("确定要重置当前单元的学习进度吗？(错题库会保留哦)")) {
+            if (confirm("确定要重置当前单元的学习进度吗？(错题库与掌握度都会清空)")) {
                 currentIndex = 0;
                 isReviewMode = false;
+                masteredWords.clear();
                 localStorage.removeItem('spell_saved_index');
                 showCurrentIndexWord();
             }
@@ -445,7 +466,7 @@
             // 强制启用浏览器无来源规则（直接突破有道和必应防盗链拦截）
             imgEl.referrerPolicy = "no-referrer"; 
 
-            // 首选源：必应无限制精选图片库（经过尺寸、插图关键词裁剪调优）
+            // 首选源：必应无限制精选图片库
             imgEl.src = `https://tse1-mm.cn.bing.net/th/id/OIP?q=${encodeURIComponent(cleanWord + " illustration")}&w=240&h=240&c=7&rs=1&p=0&dpr=2`;
 
             imgEl.onload = function() {
@@ -460,10 +481,9 @@
 
             if (imgRetryCount === 0 && cleanWord) {
                 imgRetryCount = 1;
-                // 备用源：如果必应未收录该词，自动无缝降级到有道官方少儿词典插图混合库
+                // 备用源：如果必应未收录该词，自动无缝降级
                 imgEl.src = `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=240&auto=format&fit=crop&sig=${encodeURIComponent(cleanWord)}`;
             } else {
-                // 如果两套源都失效，干净利落地隐藏，确保页面清爽，不触发卡顿与控制台持续报错
                 container.classList.add('hidden'); 
             }
         }
@@ -500,6 +520,7 @@
                     if(r.data && r.data.length > 0) {
                         document.getElementById('localDropZone').classList.add('hidden');
                         wordBank = r.data; 
+                        masteredWords.clear();
                         if (isInitialLoad) {
                             const savedIndex = localStorage.getItem('spell_saved_index');
                             currentIndex = savedIndex ? parseInt(savedIndex, 10) : 0;
@@ -572,6 +593,7 @@
                 cardText.classList.remove('hidden');
             }
             renderCurrentWordState();
+            updateProgress();
         }
 
         function showCurrentIndexWord() {
@@ -598,14 +620,14 @@
                     document.getElementById('reviewBtn').classList.add('hidden');
                 } else {
                     triggerEpicFireworks();
-                    alert("🎉 太棒了！您已顺利通关本阶段所有卡片！");
+                    alert("🎉 太棒了！您已顺利掌握本阶段所有卡片！");
                 }
                 currentIndex = 0;
                 activeBank = isReviewMode ? wrongWords : wordBank;
             }
 
             if(currentIndex < 0) currentIndex = 0;
-            if (!isReviewMode) localStorage.setItem('spell_saved_index', currentIndex);
+            if (!isReviewMode && currentMode === 'spell') localStorage.setItem('spell_saved_index', currentIndex);
 
             currentWord = activeBank[currentIndex];
             if(!currentWord || !currentWord.word) return;
@@ -622,7 +644,11 @@
             
             renderSlots(currentWord.word);
             renderCurrentWordState();
-            speakWord();
+            
+            // 拼写模式下自动发音，卡片正面不发音（防止直接暴露答案的发音，等点击“显示答案”时发音）
+            if (currentMode === 'spell') {
+                speakWord();
+            }
             updateProgress();
         }
 
@@ -631,22 +657,95 @@
             const descEl = document.getElementById('desc');
             const cardWordEl = document.getElementById('cardWord');
             const cardDescEl = document.getElementById('cardDesc');
+            const showAnswerBtn = document.getElementById('showAnswerBtn');
+            const ankiGradingButtons = document.getElementById('ankiGradingButtons');
 
             if(currentMode === 'spell') {
                 descEl.innerText = currentWord.desc || "";
                 document.getElementById('descContainer').classList.add('hidden'); 
                 document.getElementById('hintBtn').classList.remove('hidden');
             } else {
+                // Anki 卡片模式
                 if(cardSide === 'front') {
-                    cardWordEl.innerText = currentWord.word;
+                    // 正面：隐藏文字信息，只有图片和提示，不露底细
+                    cardWordEl.className = "text-3xl font-bold tracking-tight text-transparent bg-[#e8e8ed] rounded-md px-10 select-none animate-pulse";
+                    cardWordEl.innerText = "Secret Word";
                     cardDescEl.className = "text-base text-transparent bg-[#e8e8ed] rounded-md px-6 mt-1 select-none animate-pulse";
-                    cardDescEl.innerText = "点击翻面提示";
+                    cardDescEl.innerText = "Description";
+                    
+                    showAnswerBtn.classList.remove('hidden');
+                    ankiGradingButtons.classList.add('hidden');
                 } else {
+                    // 反面：完整呈现英文、音标、释义
+                    cardWordEl.className = "text-3xl font-bold tracking-tight text-[#1d1d1f]";
                     cardWordEl.innerText = currentWord.word;
                     cardDescEl.className = "text-base text-[#86868b] font-medium mt-1 select-text";
                     cardDescEl.innerText = currentWord.desc || "";
+                    
+                    showAnswerBtn.classList.add('hidden');
+                    ankiGradingButtons.classList.remove('hidden');
                 }
             }
+        }
+
+        function flipToBack() {
+            if(currentMode !== 'card') return;
+            cardSide = 'back';
+            renderCurrentWordState();
+            speakWord(); // 翻面展示答案并自动播放发音，加深认知
+        }
+
+        function handleAnkiFeedback(level) {
+            if (currentMode !== 'card') return;
+            let activeBank = isReviewMode ? wrongWords : wordBank;
+            const mainCard = document.getElementById('mainCard');
+            
+            if (level === 'again') {
+                // 🔴 重来：把当前词放入队列最后重新轮询，触发挫折震动
+                const current = activeBank.splice(currentIndex, 1)[0];
+                activeBank.push(current);
+                playSound('error');
+                mainCard.classList.add('shake');
+                setTimeout(() => mainCard.classList.remove('shake'), 400);
+            } else if (level === 'good') {
+                // 🟡 一般：熟练度还可以，保留在集合中，前进一步
+                currentIndex++;
+            } else if (level === 'easy') {
+                // 🟢 简单：瞬间斩杀，加入已掌握，彻底剔除
+                masteredWords.add(currentWord.word);
+                activeBank.splice(currentIndex, 1);
+                playSound('success');
+                mainCard.classList.add('celebrate');
+                setTimeout(() => mainCard.classList.remove('celebrate'), 400);
+            }
+
+            cardSide = 'front';
+            
+            // 💡 修复：如果全部掌握，先渲染 100% 进度，播放烟花，再延迟重置
+            if (activeBank.length === 0) {
+                // 强制将进度条和文字拉满
+                document.getElementById('progressText').innerText = `已掌握: 100% (剩余 0 张)`;
+                document.getElementById('progressBar').style.width = `100%`;
+                
+                triggerEpicFireworks();
+                
+                setTimeout(() => {
+                    alert("🎉 恭喜！当前所有的卡片都已被你彻底消灭掌握！");
+                    resetMasteredAndReload();
+                }, 600); // 留出 600ms 让用户看到 100% 和烟花动效
+            } else {
+                if (currentIndex >= activeBank.length) {
+                    currentIndex = 0;
+                }
+                showCurrentIndexWord();
+            }
+        }
+
+        function resetMasteredAndReload() {
+            masteredWords.clear();
+            currentIndex = 0;
+            isReviewMode = false;
+            loadNewUnit();
         }
 
         function renderSlots(word) {
@@ -668,20 +767,20 @@
             }
         }
 
-        function handleCardClick() {
-            if(currentMode === 'card') {
-                cardSide = (cardSide === 'front') ? 'back' : 'front';
-                renderCurrentWordState();
-                if(cardSide === 'back') speakWord();
-            } else {
-                document.getElementById('userInput').focus();
-            }
-        }
-
         document.getElementById('mainCard').addEventListener('click', function(e) {
             if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
             handleCardClick();
         });
+
+        function handleCardClick() {
+            if(currentMode === 'card') {
+                if(cardSide === 'front') {
+                    flipToBack();
+                }
+            } else {
+                document.getElementById('userInput').focus();
+            }
+        }
 
         function toggleHint() {
             document.getElementById('descContainer').classList.remove('hidden');
@@ -741,35 +840,24 @@
             }
         }
 
-        function prevWord() {
-            if(currentIndex > 0) {
-                currentIndex--;
-                showCurrentIndexWord();
-            } else {
-                alert("已经是第一张卡片了哦！");
-            }
-        }
-
-        function nextWord() {
-            let activeBank = isReviewMode ? wrongWords : wordBank;
-            if (currentIndex < activeBank.length - 1) {
-                currentIndex++;
-                showCurrentIndexWord();
-            } else {
-                alert("这已经是最后一张卡片啦！");
-            }
-        }
-
         function updateProgress() {
             let activeBank = isReviewMode ? wrongWords : wordBank;
-            if(activeBank.length === 0) {
+            const total = activeBank.length + masteredWords.size;
+            if(total === 0) {
                 document.getElementById('progressText').innerText = `0%`;
                 document.getElementById('progressBar').style.width = `0%`;
                 return;
             }
-            const percent = Math.min(Math.round(((currentIndex) / activeBank.length) * 100), 100);
-            document.getElementById('progressText').innerText = `${percent}%`;
-            document.getElementById('progressBar').style.width = `${percent}%`;
+            if (currentMode === 'spell') {
+                const percent = Math.min(Math.round(((currentIndex) / activeBank.length) * 100), 100);
+                document.getElementById('progressText').innerText = `${percent}%`;
+                document.getElementById('progressBar').style.width = `${percent}%`;
+            } else {
+                // 如果已经没有剩余卡片，直接判定为 100%
+                const percent = activeBank.length === 0 ? 100 : Math.min(Math.round((masteredWords.size / total) * 100), 99); 
+                document.getElementById('progressText').innerText = `已掌握: ${percent}% (剩余 ${activeBank.length} 张)`;
+                document.getElementById('progressBar').style.width = `${percent}%`;
+            }
         }
 
         function updateWrongWordsButton() {
@@ -822,8 +910,19 @@
                 const touchEndY = e.changedTouches[0].screenY;
                 const diffX = touchEndX - touchStartX;
                 const diffY = touchEndY - touchStartY;
+                
+                // Anki 模式中不再提供单纯的左右划页，而是通过自评控制卡片去向
+                // 为配合手势，可以将手势映射为：右滑代表 Easy(3) / 左滑代表 Again(1)
                 if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
-                    if (diffX < 0) nextWord(); else prevWord();
+                    if (cardSide === 'back') {
+                        if (diffX < 0) {
+                            handleAnkiFeedback('again'); // 向左划代表 Again
+                        } else {
+                            handleAnkiFeedback('easy');  // 向右划代表 Easy
+                        }
+                    } else if (cardSide === 'front') {
+                        flipToBack();
+                    }
                 }
             }, {passive: true});
         }
@@ -831,20 +930,45 @@
         function setupPhysicalKeyboardListener() {
             window.addEventListener('keydown', function(e) {
                 if (!document.getElementById('passwordScreen').classList.contains('hidden')) return;
-                if (currentMode !== 'spell') return;
-                if (e.key === 'Backspace') {
-                    e.preventDefault();
-                    handleKeyInput('BACKSPACE');
+                
+                // 卡片背诵 Anki 模式快捷键适配 (空格翻转 / 键盘 1, 2, 3 评级)
+                if (currentMode === 'card') {
+                    if (e.key === ' ') {
+                        e.preventDefault();
+                        if (cardSide === 'front') {
+                            flipToBack();
+                        }
+                    } else if (cardSide === 'back') {
+                        if (e.key === '1') {
+                            e.preventDefault();
+                            handleAnkiFeedback('again');
+                        } else if (e.key === '2') {
+                            e.preventDefault();
+                            handleAnkiFeedback('good');
+                        } else if (e.key === '3') {
+                            e.preventDefault();
+                            handleAnkiFeedback('easy');
+                        }
+                    }
                     return;
                 }
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    check();
-                    return;
-                }
-                if (/^[a-zA-Z]$/.test(e.key)) {
-                    e.preventDefault();
-                    handleKeyInput(e.key.toLowerCase());
+                
+                // 拼写模式快捷键适配
+                if (currentMode === 'spell') {
+                    if (e.key === 'Backspace') {
+                        e.preventDefault();
+                        handleKeyInput('BACKSPACE');
+                        return;
+                    }
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        check();
+                        return;
+                    }
+                    if (/^[a-zA-Z]$/.test(e.key)) {
+                        e.preventDefault();
+                        handleKeyInput(e.key.toLowerCase());
+                    }
                 }
             });
         }

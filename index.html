@@ -20,9 +20,9 @@
             theme: {
                 extend: {
                     colors: {
-                        iosBg: { light: '#f2f2f7', dark: '#1c1c1e' },
-                        iosCard: { light: '#ffffff', dark: '#2c2c2e' },
-                        iosText: { light: '#1c1c1e', dark: '#f2f2f7' }
+                        iosBg: { light: '#f4f4f9', dark: '#0a0a0c' },
+                        iosCard: { light: 'rgba(255, 255, 255, 0.65)', dark: 'rgba(20, 20, 25, 0.65)' },
+                        iosText: { light: '#1c1c1e', dark: '#f5f5f7' }
                     }
                 }
             }
@@ -46,28 +46,46 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-            padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
-            padding-top: calc(env(safe-area-inset-top) + 8px);
-            transition: background-color 0.3s ease, color 0.3s ease;
+            padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+            padding-top: calc(env(safe-area-inset-top) + 12px);
+            background: radial-gradient(circle at 50% 0%, rgba(0, 122, 255, 0.08), transparent 60%), 
+                        radial-gradient(circle at 10% 100%, rgba(52, 199, 89, 0.05), transparent 40%),
+                        #f4f4f9;
+            transition: background 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.3s ease;
         }
-        html, body { position: relative; overflow: hidden; height: 100%; -webkit-overflow-scrolling: touch; }
         
-        .ios-depth {
-            box-shadow: 
-                0 4px 14px rgba(0, 0, 0, 0.03), 
-                0 20px 48px rgba(0, 0, 0, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        }
-        .dark .ios-depth {
-            box-shadow: 
-                0 4px 14px rgba(0, 0, 0, 0.2), 
-                0 20px 48px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        .dark body {
+            background: radial-gradient(circle at 50% 0%, rgba(0, 122, 255, 0.12), transparent 50%), 
+                        radial-gradient(circle at 90% 100%, rgba(255, 59, 48, 0.05), transparent 40%),
+                        #0a0a0c;
         }
 
+        html, body { position: relative; overflow: hidden; height: 100%; -webkit-overflow-scrolling: touch; }
+        
+        /* iOS High-Fidelity Glassmorphism */
+        .ios-depth {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(30px) saturate(210%);
+            -webkit-backdrop-filter: blur(30px) saturate(210%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04),
+                        0 1px 2px 0 rgba(0, 0, 0, 0.02),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+        }
+        .dark .ios-depth {
+            background: rgba(20, 20, 25, 0.75);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6),
+                        0 1px 0px 0 rgba(255, 255, 255, 0.03),
+                        inset 0 1px 0px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        /* 3D Elastic Card with Safari Flicker Fix */
         .card-perspective {
-            perspective: 1200px;
-            -webkit-perspective: 1200px;
+            perspective: 2000px;
+            -webkit-perspective: 2000px;
             position: relative;
             flex-grow: 1; 
             display: flex;
@@ -81,10 +99,11 @@
             height: 100%;
             max-height: 380px; 
             min-height: 300px;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            -webkit-transition: -webkit-transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            -webkit-transition: -webkit-transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
+            will-change: transform;
         }
         .card-inner.is-flipped {
             transform: rotateY(180deg);
@@ -102,89 +121,76 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            border-radius: 28px;
+            box-sizing: border-box;
         }
         
-        .card-front {
-            transform: rotateY(0deg) translateZ(1px);
-            -webkit-transform: rotateY(0deg) translateZ(1px);
-            z-index: 2;
-        }
-        .card-back {
-            transform: rotateY(180deg) translateZ(1px);
-            -webkit-transform: rotateY(180deg) translateZ(1px);
-            z-index: 1;
-        }
+        .card-front { transform: rotateY(0deg); z-index: 2; }
+        .card-back { transform: rotateY(180deg); z-index: 1; }
 
         .shimmer {
-            background: linear-gradient(90deg, #e5e5ea 25%, #f2f2f7 50%, #e5e5ea 75%);
+            background: linear-gradient(90deg, rgba(229, 229, 234, 0.3) 25%, rgba(242, 242, 247, 0.6) 50%, rgba(229, 229, 234, 0.3) 75%);
             background-size: 200% 100%;
-            animation: loading-shimmer 1.4s infinite;
+            animation: loading-shimmer 1.6s infinite;
         }
         .dark .shimmer {
-            background: linear-gradient(90deg, #3a3a3c 25%, #48484a 50%, #3a3a3c 75%);
+            background: linear-gradient(90deg, rgba(58, 58, 60, 0.3) 25%, rgba(72, 72, 74, 0.6) 50%, rgba(58, 58, 60, 0.3) 75%);
             background-size: 200% 100%;
-            animation: loading-shimmer 1.4s infinite;
         }
         @keyframes loading-shimmer {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
 
-        .progress-container { width: 100%; background-color: #e5e5ea; border-radius: 999px; height: 6px; overflow: hidden; }
-        .dark .progress-container { background-color: #38383a; }
-        .progress-bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #007aff, #3498ff); transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        .progress-container { width: 100%; background-color: rgba(0, 0, 0, 0.05); border-radius: 999px; height: 5px; overflow: hidden; }
+        .dark .progress-container { background-color: rgba(255, 255, 255, 0.08); }
+        .progress-bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #007aff, #34a8ff); transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
         
         .shake { animation: ios-shake 0.45s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes ios-shake { 15%, 85% { transform: translate3d(-3px, 0, 0); } 30%, 70% { transform: translate3d(4px, 0, 0); } 45%, 65% { transform: translate3d(-5px, 0, 0); } 60% { transform: translate3d(5px, 0, 0); } }
         
-        .celebrate { animation: ios-scale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes ios-scale { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+        .celebrate { animation: ios-scale 0.5s cubic-bezier(0.25, 1.35, 0.5, 1); }
+        @keyframes ios-scale { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
         
         @keyframes letter-pop {
-            0% { transform: scale(0.85); opacity: 0.7; }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
+            0% { transform: scale(0.8) translateY(4px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
         }
-        .letter-pop {
-            animation: letter-pop 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-
+        .letter-pop { animation: letter-pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
         .ghost-input { position: absolute; top: -9999px; left: -9999px; opacity: 0; }
         
-        #virtualKeyboard button { transition: background-color 0.1s ease, transform 0.08s ease; }
-        #virtualKeyboard button:active { background-color: #b0b0b5 !important; transform: scale(0.90); }
-        .dark #virtualKeyboard button:active { background-color: #636366 !important; }
+        #virtualKeyboard button { transition: background-color 0.1s ease, transform 0.1s ease; }
+        #virtualKeyboard button:active { background-color: rgba(0, 0, 0, 0.15) !important; transform: scale(0.95); }
+        .dark #virtualKeyboard button:active { background-color: rgba(255, 255, 255, 0.15) !important; }
 
         @media (min-width: 768px) {
             #virtualKeyboard { max-width: 480px; margin-left: auto; margin-right: auto; }
         }
     </style>
 </head>
-<body class="bg-iosBg-light dark:bg-iosBg-dark text-iosText-light dark:text-iosText-dark min-h-screen p-3 flex flex-col items-center justify-center">
+<body class="text-iosText-light dark:text-iosText-dark min-h-screen p-3 flex flex-col items-center justify-center">
 
-    <!-- 暗黑模式 (密码屏专用) -->
-    <button id="globalThemeBtn" onclick="toggleDarkMode()" class="fixed top-3 right-3 z-50 p-2 bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-full shadow-md border border-black/[0.05] dark:border-white/[0.1] active:scale-90 transition">
+    <button id="globalThemeBtn" class="fixed top-3 right-3 z-50 p-2 bg-white/70 dark:bg-black/30 backdrop-blur-xl rounded-full shadow-lg border border-white/20 dark:border-white/5 active:scale-90 transition-all duration-200">
         <span class="dark:hidden text-lg">🌙</span>
         <span class="hidden dark:inline text-lg">☀️</span>
     </button>
 
-    <!-- 密码屏 -->
-    <div id="passwordScreen" class="w-full max-w-sm bg-white/70 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl p-8 my-auto rounded-[32px] ios-depth text-center border border-white/60 dark:border-white/5 transition-all">
-        <div class="text-6xl mb-5 drop-shadow-sm">🔑</div>
+    <!-- Password Screen -->
+    <div id="passwordScreen" class="w-full max-w-sm bg-white/50 dark:bg-[#141419]/50 backdrop-blur-3xl p-8 my-auto rounded-[32px] ios-depth text-center border border-white/40 dark:border-white/5 transition-all">
+        <div class="text-6xl mb-5 drop-shadow-md animate-bounce">🔑</div>
         <h2 class="text-2xl font-bold tracking-tight mb-1">Xinyi SpellQuest</h2>
-        <p class="text-gray-400 dark:text-gray-500 text-xs font-semibold tracking-wide mb-6 uppercase">Please type the passkey</p>
-        <input type="password" id="sitePassword" class="w-full p-3.5 bg-gray-200/50 dark:bg-zinc-800/50 rounded-2xl text-center text-2xl tracking-widest focus:bg-white/90 dark:focus:bg-black/90 focus:ring-4 focus:ring-[#007aff]/20 mb-5 transition-all border border-transparent placeholder-gray-400" placeholder="••••••" onkeydown="if(event.key==='Enter') verifyPassword()">
-        <button onclick="verifyPassword()" class="w-full bg-[#007aff] hover:bg-[#0066d6] text-white py-3.5 rounded-2xl font-semibold text-sm transition-all active:scale-[0.98] shadow-md shadow-[#007aff]/15">Explore the world</button>
-        <p id="passwordError" class="text-[#ff3b30] text-xs font-semibold mt-3 hidden">⚠️ Wrong passkey，Try again</p>
+        <p class="text-gray-500 dark:text-gray-400 text-xs font-semibold tracking-wide mb-6 uppercase">Please type the passkey</p>
+        <input type="password" id="sitePassword" class="w-full p-4 bg-black/[0.03] dark:bg-white/[0.03] rounded-2xl text-center text-2xl tracking-widest focus:bg-white/90 dark:focus:bg-black/90 focus:ring-4 focus:ring-[#007aff]/30 mb-5 transition-all border border-black/5 dark:border-white/5 placeholder-gray-400" placeholder="••••••">
+        <button id="loginBtn" class="w-full bg-[#007aff] hover:bg-[#0a84ff] text-white py-4 rounded-2xl font-semibold text-sm transition-all active:scale-[0.98] shadow-lg shadow-[#007aff]/20">Explore the world</button>
+        <p id="passwordError" class="text-[#ff453a] text-xs font-semibold mt-3 hidden">⚠️ Wrong passkey，Try again</p>
     </div>
 
-    <!-- 游戏主容器 -->
+    <!-- Main Game UI -->
     <div id="gameContent" class="w-full max-w-md hidden flex flex-col flex-1 justify-center h-full overflow-hidden">
         
-        <!-- 标准 iOS Navigation Bar -->
-        <header class="w-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-40 border border-black/[0.04] dark:border-white/[0.06] py-2 px-3 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] mb-2 flex items-center justify-between flex-shrink-0">
+        <header class="w-full bg-white/30 dark:bg-black/20 backdrop-blur-2xl sticky top-0 z-40 border border-white/30 dark:border-white/5 py-2 px-3 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.01)] mb-2 flex items-center justify-between flex-shrink-0">
             <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                <svg class="w-7 h-7 drop-shadow-sm flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+                <svg class="w-7 h-7 drop-shadow-md flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
                     <path d="M40,90 C40,40 160,40 160,90 L170,110 C140,115 60,115 30,110 Z" fill="#a1887f"/>
                     <ellipse cx="100" cy="110" rx="75" ry="10" fill="#8d6e63"/>
                     <circle cx="100" cy="125" r="30" fill="#ffcc80"/>
@@ -206,140 +212,131 @@
                 <h1 class="text-xs font-bold tracking-tight text-left truncate">SpellQuest</h1>
             </div>
             
-            <div class="relative flex items-center justify-center bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 active:scale-95 transition-all duration-200 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-center cursor-pointer max-w-[160px] flex-1 mx-1.5">
-                <span id="activeUnitName" class="truncate pr-3">正在加载...</span>
+            <div class="relative flex items-center justify-center bg-black/[0.04] dark:bg-white/[0.04] hover:bg-black/[0.08] dark:hover:bg-white/[0.08] active:scale-95 transition-all duration-200 px-3 py-1.5 rounded-xl text-[10px] font-bold text-center cursor-pointer max-w-[160px] flex-1 mx-1.5 border border-black/[0.02] dark:border-white/[0.02]">
+                <span id="activeUnitName" class="truncate pr-3 text-gray-800 dark:text-gray-200">正在加载...</span>
                 <span class="absolute right-2 text-[7px] opacity-40">▼</span>
-                <select id="unitSelector" onchange="onUnitChange()" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"></select>
+                <select id="unitSelector" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"></select>
             </div>
             
             <div class="flex items-center gap-1.5 flex-shrink-0">
                 <div class="flex flex-col items-end pr-0.5 justify-center">
-                    <span id="navProgress" class="text-[10px] font-extrabold text-[#007aff] dark:text-[#3498ff]">0%</span>
+                    <span id="navProgress" class="text-[10px] font-extrabold text-[#007aff] dark:text-[#0a84ff]">0%</span>
                 </div>
-                <button onclick="toggleDarkMode()" class="p-1.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-lg active:scale-90 transition">
+                <button id="themeToggleBtn" class="p-1.5 bg-black/[0.04] dark:bg-white/[0.04] hover:bg-black/[0.08] dark:hover:bg-white/[0.08] rounded-lg active:scale-90 transition">
                     <span class="dark:hidden text-xs">🌙</span>
                     <span class="hidden dark:inline text-xs">☀️</span>
                 </button>
             </div>
         </header>
         
-        <!-- 次级控制面板 -->
-        <div class="w-full flex flex-col gap-1.5 mb-2 bg-white dark:bg-iosCard-dark p-2 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-black/[0.02] dark:border-white/[0.02] flex-shrink-0">
+        <div class="w-full flex flex-col gap-1.5 mb-2 bg-white/30 dark:bg-black/15 backdrop-blur-2xl p-2 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.01)] border border-white/20 dark:border-white/5 flex-shrink-0">
             <div class="flex gap-1.5 items-center">
-                <div class="relative flex-1 bg-[#f2f2f7] dark:bg-zinc-800 rounded-xl px-1.5">
-                    <select id="groupSelector" onchange="onGroupChange()" class="w-full py-1 bg-transparent rounded-xl text-[11px] font-bold cursor-pointer text-center appearance-none text-iosText-light dark:text-iosText-dark">
+                <div class="relative flex-1 bg-black/[0.04] dark:bg-white/[0.04] rounded-xl px-1.5 border border-black/[0.01] dark:border-white/[0.01]">
+                    <select id="groupSelector" class="w-full py-1.5 bg-transparent rounded-xl text-[11px] font-bold cursor-pointer text-center appearance-none text-iosText-light dark:text-iosText-dark">
                         <option value="newConcept">🎒 少儿新概念</option>
                         <option value="schoolClass">🏫 学校课堂组</option>
                         <option value="ieltsClass">🗽 雅思词汇</option>
                     </select>
                 </div>
-                <button onclick="resetAllProgress()" class="text-[9px] font-semibold text-gray-400 dark:text-gray-500 hover:text-[#ff3b30] px-2 py-1 bg-white dark:bg-[#2c2c2e] border border-black/[0.05] dark:border-white/[0.05] rounded-xl shadow-sm transition-all flex-shrink-0">🔄 重置单元</button>
+                <button id="resetProgressBtn" class="text-[9px] font-bold text-gray-500 dark:text-gray-400 hover:text-[#ff453a] px-2.5 py-1.5 bg-white/40 dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.05] rounded-xl shadow-sm transition-all flex-shrink-0 active:scale-95">🔄 重置单元</button>
             </div>
             
             <div class="grid grid-cols-2 gap-1.5 items-center">
-                <div class="bg-[#f2f2f7] dark:bg-zinc-800 py-1 px-2 rounded-xl flex items-center justify-between">
-                    <span class="text-[8px] font-semibold text-gray-400 dark:text-gray-500">口音</span>
+                <div class="bg-black/[0.03] dark:bg-white/[0.03] py-1 px-2 rounded-xl flex items-center justify-between border border-black/[0.01] dark:border-white/[0.01] h-[26px]">
+                    <span class="text-[8px] font-semibold text-gray-500 dark:text-gray-400">口音</span>
                     <div class="flex gap-2">
-                        <label class="flex items-center gap-1 text-[10px] font-medium cursor-pointer">
-                            <input type="radio" name="accentType" value="2" checked onchange="speakWord()" class="w-3 h-3 accent-[#007aff]"> 美
+                        <label class="flex items-center gap-1 text-[10px] font-semibold cursor-pointer">
+                            <input type="radio" name="accentType" value="2" checked class="w-3 h-3 accent-[#007aff]"> 美
                         </label>
-                        <label class="flex items-center gap-1 text-[10px] font-medium cursor-pointer">
-                            <input type="radio" name="accentType" value="1" onchange="speakWord()" class="w-3 h-3 accent-[#007aff]"> 英
+                        <label class="flex items-center gap-1 text-[10px] font-semibold cursor-pointer">
+                            <input type="radio" name="accentType" value="1" class="w-3 h-3 accent-[#007aff]"> 英
                         </label>
                     </div>
                 </div>
 
-                <div class="relative flex bg-gray-200/60 dark:bg-zinc-800/80 p-0.5 rounded-xl h-[26px]">
-                    <div id="segment-indicator" class="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] bg-white dark:bg-zinc-700 rounded-[8px] shadow-sm transition-transform duration-200 ease-out z-0"></div>
-                    <button id="mode-spell-btn" onclick="switchMode('spell')" class="flex-1 rounded-[8px] font-bold text-[10px] transition-colors duration-200 text-iosText-light dark:text-iosText-dark relative z-10">拼读挑战</button>
-                    <button id="mode-card-btn" onclick="switchMode('card')" class="flex-1 rounded-[8px] font-medium text-[10px] transition-colors duration-200 text-gray-400 dark:text-gray-500 relative z-10">卡片背诵</button>
+                <div class="relative flex bg-black/[0.05] dark:bg-white/[0.05] p-0.5 rounded-xl h-[26px]">
+                    <div id="segment-indicator" class="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] bg-white dark:bg-[#1c1c1e] rounded-[8px] shadow-md transition-transform duration-300 ease-out z-0"></div>
+                    <button id="mode-spell-btn" class="flex-1 rounded-[8px] font-bold text-[10px] transition-colors duration-200 text-iosText-light dark:text-iosText-dark relative z-10">拼读挑战</button>
+                    <button id="mode-card-btn" class="flex-1 rounded-[8px] font-medium text-[10px] transition-colors duration-200 text-gray-400 dark:text-gray-500 relative z-10">卡片背诵</button>
                 </div>
             </div>
         </div>
 
-        <!-- 3D卡片舞台 -->
         <div id="mainCard" class="card-perspective my-1">
             <div id="cardInner" class="card-inner">
                 
-                <!-- 卡片正面 -->
-                <div class="card-front bg-white dark:bg-iosCard-dark p-3.5 rounded-[24px] ios-depth border border-black/[0.01] dark:border-white/[0.02]">
+                <div class="card-front bg-white/40 dark:bg-black/20 backdrop-blur-3xl p-4 rounded-[28px] ios-depth">
                     <div>
                         <div class="flex justify-between items-center text-[9px] font-semibold text-gray-400 dark:text-gray-500 mb-1 px-0.5">
                             <span id="progressTitle">冒险进度</span>
-                            <span id="progressText" class="text-[#007aff]">0%</span>
+                            <span id="progressText" class="text-[#007aff] font-bold">0%</span>
                         </div>
                         <div class="progress-container">
                             <div id="progressBar" class="progress-bar" style="width: 0%"></div>
                         </div>
                     </div>
 
-                    <!-- 【重点修复】：通过限制视窗本身的高、调整子元素尺寸来防止溢出 -->
-                    <div class="p-3 bg-gray-100/90 dark:bg-zinc-900/60 rounded-2xl text-center flex-1 flex flex-col justify-between items-center min-h-[140px] max-h-[190px] relative border border-black/[0.06] dark:border-white/[0.06] shadow-[inset_0_2px_5px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.4)] my-2 overflow-hidden">
+                    <div class="p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-2xl text-center flex-1 flex flex-col justify-between items-center min-h-[140px] max-h-[190px] relative border border-black/[0.04] dark:border-white/[0.04] shadow-[inset_0_2px_8px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_2px_12px_rgba(0,0,0,0.2)] my-2 overflow-hidden">
                         
-                        <!-- 媒体区：降低图片和Emoji尺寸，防止顶破容器 -->
                         <div class="flex items-center justify-center gap-3 w-full h-[64px] flex-shrink-0">
-                            <div id="emoji" class="text-4xl filter drop-shadow-md flex-shrink-0 transition-transform duration-300">🍎</div>
-                            <div id="netImageContainer" class="hidden relative w-[54px] h-[54px] rounded-[12px] overflow-hidden bg-white dark:bg-zinc-800 shadow-md border border-black/5 dark:border-white/5 flex-shrink-0">
+                            <div id="emoji" class="text-4xl filter drop-shadow-md flex-shrink-0 transition-transform duration-300 hover:scale-110">🍎</div>
+                            <div id="netImageContainer" class="hidden relative w-[54px] h-[54px] rounded-[12px] overflow-hidden bg-white/80 dark:bg-black/40 shadow-md border border-black/5 dark:border-white/5 flex-shrink-0">
                                 <div id="imageShimmer" class="shimmer absolute inset-0 z-10"></div>
-                                <img id="netImage" src="" class="opacity-0 transition-opacity duration-300 z-20 block w-full h-full object-cover absolute top-0 left-0" alt="illustration" onerror="handleImageError()">
+                                <img id="netImage" src="" class="opacity-0 transition-opacity duration-300 z-20 block w-full h-full object-cover absolute top-0 left-0" alt="illustration">
                             </div>
                         </div>
                         
-                        <!-- 释义提示区 -->
                         <div id="spellHintArea" class="h-[24px] flex items-center justify-center w-full flex-shrink-0">
                             <div id="descContainer" class="hidden flex flex-col items-center">
                                 <span id="desc" class="text-xs font-bold text-gray-800 dark:text-gray-100 truncate max-w-[280px]">正在加载...</span>
-                                <span id="phonetic" class="text-[9px] text-[#007aff] dark:text-[#3498ff] font-mono tracking-wide leading-none"></span>
+                                <span id="phonetic" class="text-[9px] text-[#007aff] dark:text-[#0a84ff] font-mono tracking-wide leading-none mt-0.5"></span>
                             </div>
-                            <button id="hintBtn" onclick="event.stopPropagation(); toggleHint();" class="text-[9px] font-bold text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 px-2.5 py-0.5 rounded-full shadow-sm active:scale-95 transition-all">显示中文提示</button>
+                            <button id="hintBtn" class="text-[9px] font-bold text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 px-3 py-1 rounded-full shadow-sm active:scale-95 transition-all">显示中文提示</button>
                         </div>
 
-                        <!-- 字母拼写槽 -->
                         <div id="letterSlots" class="flex justify-center flex-wrap gap-1 text-lg font-bold tracking-wide h-[32px] w-full px-1 items-end overflow-hidden mb-1"></div>
                     </div>
 
-                    <!-- 操作按钮 -->
                     <div id="spellActionButtons" class="grid grid-cols-2 gap-2 mt-auto">
-                        <button onclick="event.stopPropagation(); speakWord();" class="bg-[#f2f2f7] dark:bg-zinc-800 hover:bg-[#e5e5ea] text-[#007aff] py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all"><span>听发音 🔊</span></button>
-                        <button onclick="event.stopPropagation(); check();" class="bg-[#007aff] hover:bg-[#0066d6] text-white py-2 rounded-xl font-bold text-xs shadow-sm active:scale-[0.98] transition-all">检查结果</button>
+                        <button id="speakBtn" class="bg-black/[0.04] dark:bg-white/[0.04] hover:bg-black/[0.08] dark:hover:bg-white/[0.08] text-[#007aff] py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all border border-black/[0.02] dark:border-white/[0.02]"><span>听发音 🔊</span></button>
+                        <button id="checkBtn" class="bg-[#007aff] hover:bg-[#0a84ff] text-white py-2.5 rounded-xl font-bold text-xs shadow-md shadow-[#007aff]/15 active:scale-[0.98] transition-all">检查结果</button>
                     </div>
 
                     <div id="cardFrontActionButtons" class="hidden mt-auto">
-                        <button onclick="event.stopPropagation(); flipToBack();" class="w-full bg-[#007aff] hover:bg-[#0066d6] text-white py-2.5 rounded-xl font-bold text-xs shadow-md shadow-[#007aff]/10 transition active:scale-95">
+                        <button id="showAnswerBtn" class="w-full bg-[#007aff] hover:bg-[#0a84ff] text-white py-2.5 rounded-xl font-bold text-xs shadow-md shadow-[#007aff]/15 transition active:scale-95">
                             👀 显示答案 (Show Answer)
                         </button>
                         <p class="text-center text-[8px] text-gray-400 dark:text-gray-500 mt-1">点击卡片或按空格键翻转</p>
                     </div>
                 </div>
 
-                <!-- 卡片背面 -->
-                <div class="card-back bg-white dark:bg-iosCard-dark p-3.5 rounded-[24px] ios-depth border border-black/[0.01] dark:border-white/[0.02]">
+                <div class="card-back bg-white/40 dark:bg-black/20 backdrop-blur-3xl p-4 rounded-[28px] ios-depth">
                     <div>
                         <div class="flex justify-between items-center text-[9px] font-semibold text-gray-400 dark:text-gray-500 mb-1 px-0.5">
                             <span>卡片解读</span>
-                            <span id="cardProgressText" class="text-[#34c759]">掌握中</span>
+                            <span id="cardProgressText" class="text-[#34c759] font-bold">掌握中</span>
                         </div>
                         <div class="progress-container">
                             <div class="progress-bar" style="width: 100%; background: #34c759;"></div>
                         </div>
                     </div>
 
-                    <div class="p-3 bg-gray-100/90 dark:bg-zinc-900/60 rounded-2xl text-center flex-1 flex flex-col justify-center items-center min-h-[140px] max-h-[190px] border border-black/[0.06] dark:border-white/[0.06] shadow-[inset_0_2px_5px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.4)] my-2">
+                    <div class="p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-2xl text-center flex-1 flex flex-col justify-center items-center min-h-[140px] max-h-[190px] border border-black/[0.04] dark:border-white/[0.04] shadow-[inset_0_2px_8px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_2px_12px_rgba(0,0,0,0.2)] my-2">
                         <div id="cardWord" class="text-2xl font-extrabold tracking-tight text-iosText-light dark:text-iosText-dark"></div>
-                        <div id="cardPhonetic" class="text-[10px] text-[#007aff] dark:text-[#3498ff] font-mono mt-0.5"></div>
+                        <div id="cardPhonetic" class="text-[10px] text-[#007aff] dark:text-[#0a84ff] font-mono mt-0.5"></div>
                         <div id="cardDesc" class="text-base text-gray-800 dark:text-gray-100 font-bold mt-2"></div>
                     </div>
 
                     <div id="ankiGradingButtons" class="grid grid-cols-3 gap-2 mt-auto">
-                        <button onclick="event.stopPropagation(); handleAnkiFeedback('again');" class="bg-[#ff3b30]/10 hover:bg-[#ff3b30]/15 text-[#ff3b30] py-1.5 rounded-xl font-bold text-xs transition border border-[#ff3b30]/15 active:scale-95 flex flex-col items-center">
+                        <button data-level="again" class="anki-btn bg-[#ff453a]/10 hover:bg-[#ff453a]/15 text-[#ff453a] py-2 rounded-xl font-bold text-xs transition border border-[#ff453a]/15 active:scale-95 flex flex-col items-center">
                             <span>🔴 重来</span>
                             <span class="text-[7px] font-medium opacity-60 mt-0.5">Again [1]</span>
                         </button>
-                        <button onclick="event.stopPropagation(); handleAnkiFeedback('good');" class="bg-[#ff9500]/10 hover:bg-[#ff9500]/15 text-[#ff9500] py-1.5 rounded-xl font-bold text-xs transition border border-[#ff9500]/15 active:scale-95 flex flex-col items-center">
+                        <button data-level="good" class="anki-btn bg-[#ff9f0a]/10 hover:bg-[#ff9f0a]/15 text-[#ff9f0a] py-2 rounded-xl font-bold text-xs transition border border-[#ff9f0a]/15 active:scale-95 flex flex-col items-center">
                             <span>🟡 一般</span>
                             <span class="text-[7px] font-medium opacity-60 mt-0.5">Good [2]</span>
                         </button>
-                        <button onclick="event.stopPropagation(); handleAnkiFeedback('easy');" class="bg-[#34c759]/10 hover:bg-[#34c759]/15 text-[#34c759] py-1.5 rounded-xl font-bold text-xs transition border border-[#34c759]/15 active:scale-95 flex flex-col items-center">
+                        <button data-level="easy" class="anki-btn bg-[#30d158]/10 hover:bg-[#30d158]/15 text-[#30d158] py-2 rounded-xl font-bold text-xs transition border border-[#30d158]/15 active:scale-95 flex flex-col items-center">
                             <span>🟢 简单</span>
                             <span class="text-[7px] font-medium opacity-60 mt-0.5">Easy [3]</span>
                         </button>
@@ -349,858 +346,825 @@
             </div>
         </div>
         
-        <button onclick="reviewWrongWords()" id="reviewBtn" class="w-full bg-[#ff3b30]/90 hover:bg-[#ff3b30] text-white py-1.5 rounded-xl font-semibold text-xs hidden shadow-sm active:scale-95 transition-all mb-1 flex-shrink-0">温习错题库 (0)</button>
+        <button id="reviewWrongBtn" class="w-full bg-[#ff453a]/90 hover:bg-[#ff453a] text-white py-2 rounded-xl font-bold text-xs hidden shadow-md shadow-[#ff453a]/10 active:scale-95 transition-all mb-1 flex-shrink-0">温习错题库 (0)</button>
 
-        <div id="localDropZone" class="hidden p-2 mb-1 border border-dashed border-[#c7c7cc] bg-white dark:bg-iosCard-dark rounded-xl text-[9px] font-medium text-gray-400 cursor-pointer w-full text-center hover:bg-gray-50 dark:hover:bg-zinc-800 transition flex-shrink-0">
+        <div id="localDropZone" class="hidden p-2.5 mb-1 border border-dashed border-black/20 dark:border-white/20 bg-white/40 dark:bg-white/[0.02] rounded-xl text-[9px] font-semibold text-gray-500 cursor-pointer w-full text-center hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition flex-shrink-0">
             请点击此处手动导入本地词库 CSV 文件
-            <input type="file" id="localFileInp" class="hidden" accept=".csv" onchange="handleFileSelect(this)">
+            <input type="file" id="localFileInp" class="hidden" accept=".csv">
         </div>
 
-        <input type="text" id="userInput" class="ghost-input" autocomplete="off" spellcheck="false" oninput="filterInput(this)" onkeydown="if(event.key==='Enter') check()">
+        <input type="text" id="userInput" class="ghost-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="text">
         
-        <!-- 虚拟键盘 -->
-        <div id="virtualKeyboard" class="w-full bg-[#d1d1d6]/70 dark:bg-zinc-800/70 backdrop-blur-xl p-1 rounded-2xl shadow-inner flex flex-col gap-1 flex-shrink-0">
+        <div id="virtualKeyboard" class="w-full bg-[#d1d1d6]/50 dark:bg-[#1a1a20]/60 backdrop-blur-3xl p-1 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col gap-1 flex-shrink-0">
             <div class="flex justify-center gap-1" id="kbd-row1"></div>
             <div class="flex justify-center gap-1" id="kbd-row2"></div>
             <div class="flex justify-center gap-1" id="kbd-row3"></div>
         </div>
     </div>
 
-    <div id="iosToast" class="fixed bottom-1/3 left-1/2 -translate-x-1/2 bg-black/80 dark:bg-white/90 text-white dark:text-black text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 transform translate-y-2 z-50">提示</div>
+    <div id="iosToast" class="fixed bottom-1/3 left-1/2 -translate-x-1/2 bg-black/85 dark:bg-white/95 text-white dark:text-black text-xs font-bold px-5 py-3 rounded-2xl shadow-xl backdrop-blur-2xl opacity-0 pointer-events-none transition-all duration-300 transform translate-y-2 z-50">提示</div>
 
     <audio id="globalAudioPlayer" style="display: none;"></audio>
 
     <script>
-        const CORRECT_PASSWORD = '666';
-        const COURSE_DATA = {
-            newConcept: [
-                { text: "Unit 1 Lesson 1", value: "data/unit1_lesson1.csv" },
-                { text: "Unit 1 Lesson 2", value: "data/unit1_lesson2.csv" },
-                { text: "Unit 2 Lesson 3", value: "data/unit2_lesson3.csv" },
-                { text: "Unit 2 Lesson 4", value: "data/unit2_lesson4.csv" },
-                { text: "Unit 3 Lesson 5", value: "data/unit3_lesson5.csv" },
-                { text: "Unit 3 Lesson 6", value: "data/unit3_lesson6.csv" },
-                { text: "Unit 4 Lesson 7", value: "data/unit4_lesson7.csv" },
-                { text: "Unit 5 Lesson 9", value: "data/unit5_lesson9.csv" },
-                { text: "Unit 5 Lesson 10", value: "data/unit5_lesson10.csv" },
-                { text: "Unit 6 Lesson 11", value: "data/unit6_lesson11.csv" },
-                { text: "Unit 6 Lesson 12", value: "data/unit6_lesson12.csv" },
-                { text: "Unit 7 Lesson 13", value: "data/unit7_lesson13.csv" }
-            ],
-            schoolClass: [
-                { text: "课堂组 Unit 1", value: "data/school_unit1.csv" },
-                { text: "课堂组 Unit 2", value: "data/school_unit2.csv" },
-                { text: "课堂组 Unit 3", value: "data/school_unit3.csv" },
-                { text: "课堂组 Unit 4", value: "data/school_unit4.csv" },
-                { text: "课堂组 Unit 5", value: "data/school_unit5.csv" },
-                { text: "课堂组 Unit 6", value: "data/school_unit6.csv" },
-                { text: "课堂组 Unit 7", value: "data/school_unit7.csv" },
-                { text: "课堂组 Unit 8", value: "data/school_unit8.csv" },
-                { text: "课堂组 months", value: "data/school_months.csv" },
-                { text: "课堂组 Cardinal numbers", value: "data/school_cardinal_numbers.csv" },
-                { text: "课堂组 Ordinal numbers", value: "data/school_ordinal_numbers.csv" }
-            ],
-            ieltsClass: [
-                { text: "ives_Business_Economy", value: "data/ives_Business_Economy.csv" },
-                { text: "ives_Education_Learning", value: "data/ives_Education_Learning.csv" },
-                { text: "ives_Emotions_Abstract", value: "data/ives_Emotions_Abstract.csv" },
-                { text: "ives_Environment_Nature", value: "data/ives_Environment_Nature.csv" },
-                { text: "ives_Health_Body", value: "data/ives_Health_Body.csv" },
-                { text: "ives_Science_Technology", value: "data/ives_Science_Technology.csv" },
-                { text: "ives_Society_People", value: "data/ives_Society_People.csv" },
-                { text: "ives_Travel_Transport", value: "data/ives_Travel_Transport.csv" }
-            ] 
+        /**
+         * State & Config
+         */
+        const CONFIG = {
+            HASH: 'NjY2', // Base64 for "666"
+            COURSE_DATA: {
+                newConcept: [
+                    { text: "Unit 1 Lesson 1", value: "data/unit1_lesson1.csv" },
+                    { text: "Unit 1 Lesson 2", value: "data/unit1_lesson2.csv" },
+                    { text: "Unit 2 Lesson 3", value: "data/unit2_lesson3.csv" },
+                    { text: "Unit 2 Lesson 4", value: "data/unit2_lesson4.csv" },
+                    { text: "Unit 3 Lesson 5", value: "data/unit3_lesson5.csv" },
+                    { text: "Unit 3 Lesson 6", value: "data/unit3_lesson6.csv" },
+                    { text: "Unit 4 Lesson 7", value: "data/unit4_lesson7.csv" },
+                    { text: "Unit 5 Lesson 9", value: "data/unit5_lesson9.csv" },
+                    { text: "Unit 5 Lesson 10", value: "data/unit5_lesson10.csv" },
+                    { text: "Unit 6 Lesson 11", value: "data/unit6_lesson11.csv" },
+                    { text: "Unit 6 Lesson 12", value: "data/unit6_lesson12.csv" },
+                    { text: "Unit 7 Lesson 13", value: "data/unit7_lesson13.csv" }
+                ],
+                schoolClass: [
+                    { text: "课堂组 Unit 1", value: "data/school_unit1.csv" },
+                    { text: "课堂组 Unit 2", value: "data/school_unit2.csv" },
+                    { text: "课堂组 Unit 3", value: "data/school_unit3.csv" },
+                    { text: "课堂组 Unit 4", value: "data/school_unit4.csv" },
+                    { text: "课堂组 Unit 5", value: "data/school_unit5.csv" },
+                    { text: "课堂组 Unit 6", value: "data/school_unit6.csv" },
+                    { text: "课堂组 Unit 7", value: "data/school_unit7.csv" },
+                    { text: "课堂组 Unit 8", value: "data/school_unit8.csv" },
+                    { text: "课堂组 months", value: "data/school_months.csv" },
+                    { text: "课堂组 Cardinal numbers", value: "data/school_cardinal_numbers.csv" },
+                    { text: "课堂组 Ordinal numbers", value: "data/school_ordinal_numbers.csv" }
+                ],
+                ieltsClass: [
+                    { text: "ives_Business_Economy", value: "data/ives_Business_Economy.csv" },
+                    { text: "ives_Education_Learning", value: "data/ives_Education_Learning.csv" },
+                    { text: "ives_Emotions_Abstract", value: "data/ives_Emotions_Abstract.csv" },
+                    { text: "ives_Environment_Nature", value: "data/ives_Environment_Nature.csv" },
+                    { text: "ives_Health_Body", value: "data/ives_Health_Body.csv" },
+                    { text: "ives_Science_Technology", value: "data/ives_Science_Technology.csv" },
+                    { text: "ives_Society_People", value: "data/ives_Society_People.csv" },
+                    { text: "ives_Travel_Transport", value: "data/ives_Travel_Transport.csv" }
+                ] 
+            },
+            KBD_ROWS: [
+                ["Q","W","E","R","T","Y","U","I","O","P"],
+                ["A","S","D","F","G","H","J","K","L"],
+                ["Z","X","C","V","B","N","M", "⌫"]
+            ]
         };
 
-        const KBD_ROWS = [
-            ["Q","W","E","R","T","Y","U","I","O","P"],
-            ["A","S","D","F","G","H","J","K","L"],
-            ["Z","X","C","V","B","N","M", "⌫"]
-        ];
+        const state = {
+            currentInputValue: "",
+            maxLetters: 0,
+            mode: 'spell', // 'spell' or 'card'
+            side: 'front',
+            wordBank: [],
+            wrongWords: [],
+            masteredWords: new Set(),
+            currentIndex: 0,
+            isReviewMode: false,
+            imgRetryCount: 0,
+            touch: { x: 0, y: 0 },
+            isTrans: false // 防止重复过渡的动画锁
+        };
 
-        let currentInputValue = ""; 
-        let maxAllowedLetters = 0;  
-        let currentMode = 'spell';
-        let cardSide = 'front';
-        let wordBank = [], wrongWords = [];
-        let masteredWords = new Set(); 
-        let currentWord = {}; let currentIndex = 0;
-        let isReviewMode = false;
-        let imgRetryCount = 0; 
+        // Cache DOM elements
+        const el = {
+            loginBtn: document.getElementById('loginBtn'),
+            passInp: document.getElementById('sitePassword'),
+            passScreen: document.getElementById('passwordScreen'),
+            gameContent: document.getElementById('gameContent'),
+            unitSelector: document.getElementById('unitSelector'),
+            groupSelector: document.getElementById('groupSelector'),
+            activeUnitName: document.getElementById('activeUnitName'),
+            cardInner: document.getElementById('cardInner'),
+            userInput: document.getElementById('userInput'),
+            letterSlots: document.getElementById('letterSlots'),
+            netImage: document.getElementById('netImage'),
+            netImageContainer: document.getElementById('netImageContainer'),
+            imageShimmer: document.getElementById('imageShimmer'),
+            emoji: document.getElementById('emoji'),
+            desc: document.getElementById('desc'),
+            descContainer: document.getElementById('descContainer'),
+            hintBtn: document.getElementById('hintBtn'),
+            phonetic: document.getElementById('phonetic'),
+            progressBar: document.getElementById('progressBar'),
+            progressText: document.getElementById('progressText'),
+            navProgress: document.getElementById('navProgress'),
+            reviewBtn: document.getElementById('reviewWrongBtn'),
+            audio: document.getElementById('globalAudioPlayer'),
+            globalThemeBtn: document.getElementById('globalThemeBtn'),
+            themeToggleBtn: document.getElementById('themeToggleBtn'),
+            modeSpellBtn: document.getElementById('mode-spell-btn'),
+            modeCardBtn: document.getElementById('mode-card-btn'),
+            resetProgressBtn: document.getElementById('resetProgressBtn'),
+            speakBtn: document.getElementById('speakBtn'),
+            checkBtn: document.getElementById('checkBtn'),
+            showAnswerBtn: document.getElementById('showAnswerBtn'),
+            cardWord: document.getElementById('cardWord'),
+            cardPhonetic: document.getElementById('cardPhonetic'),
+            cardDesc: document.getElementById('cardDesc'),
+            ankiGradingButtons: document.getElementById('ankiGradingButtons'),
+            localDropZone: document.getElementById('localDropZone'),
+            localFileInp: document.getElementById('localFileInp'),
+            segmentIndicator: document.getElementById('segment-indicator'),
+            virtualKeyboard: document.getElementById('virtualKeyboard'),
+            passwordError: document.getElementById('passwordError'),
+            mainCard: document.getElementById('mainCard'),
+            iosToast: document.getElementById('iosToast')
+        };
 
-        let touchStartX = 0;
-        let touchStartY = 0;
+        let audioCtx = null;
 
-        function initDarkMode() {
-            const savedTheme = localStorage.getItem('spell_dark_mode');
-            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        /**
+         * Core Functions
+         */
+        
+        function init() {
+            setupEventListeners();
+            loadSavedPreferences();
+            renderVirtualKeyboard();
+        }
+
+        function setupEventListeners() {
+            // UI Interactions
+            el.loginBtn.addEventListener('click', verifyPassword);
+            el.passInp.addEventListener('keydown', e => e.key === 'Enter' && verifyPassword());
+            
+            el.globalThemeBtn.addEventListener('click', toggleDarkMode);
+            el.themeToggleBtn.addEventListener('click', toggleDarkMode);
+            
+            el.groupSelector.addEventListener('change', onGroupChange);
+            el.unitSelector.addEventListener('change', onUnitChange);
+            
+            el.modeSpellBtn.addEventListener('click', () => switchMode('spell'));
+            el.modeCardBtn.addEventListener('click', () => switchMode('card'));
+            
+            el.resetProgressBtn.addEventListener('click', resetAllProgress);
+            el.hintBtn.addEventListener('click', toggleHint);
+            el.speakBtn.addEventListener('click', speakWord);
+            el.checkBtn.addEventListener('click', check);
+            el.showAnswerBtn.addEventListener('click', flipToBack);
+            el.reviewBtn.addEventListener('click', reviewWrongWords);
+            
+            // 实体与虚拟键盘焦点关联
+            el.userInput.addEventListener('input', e => filterInput(e.target));
+
+            // Anki 按钮委托
+            el.ankiGradingButtons.addEventListener('click', e => {
+                const btn = e.target.closest('.anki-btn');
+                if (btn) handleAnkiFeedback(btn.dataset.level);
+            });
+
+            // 优化：卡片滑动/触摸
+            el.mainCard.addEventListener('touchstart', e => {
+                state.touch.x = e.changedTouches[0].screenX;
+                state.touch.y = e.changedTouches[0].screenY;
+            }, { passive: true });
+
+            el.mainCard.addEventListener('touchend', handleCardTouchEnd, { passive: true });
+            el.mainCard.addEventListener('click', e => {
+                if (e.target.closest('button, select, input, label')) return;
+                if (state.mode === 'card') {
+                    if (state.side === 'front') flipToBack();
+                } else {
+                    el.userInput.focus();
+                }
+            });
+
+            // 物理按键全局代理
+            window.addEventListener('keydown', handlePhysicalKeyboard);
+
+            // 错误重载与降级图片处理
+            el.netImage.addEventListener('error', handleImageError);
+
+            // 本地 CSV 载入
+            el.localDropZone.addEventListener('click', () => el.localFileInp.click());
+            el.localFileInp.addEventListener('change', e => handleFileSelect(e.target));
+        }
+
+        function verifyPassword() {
+            const input = el.passInp.value;
+            if (btoa(input) === CONFIG.HASH) {
+                // 提前解锁音视频上下文
+                getAudioContext();
+                el.audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+                el.audio.play().then(() => {
+                    el.passScreen.classList.add('hidden');
+                    el.globalThemeBtn.classList.add('hidden');
+                    el.gameContent.classList.remove('hidden');
+                    updateUnitOptions(true);
+                }).catch(() => {
+                    // 如果被强行拦截，依旧顺畅进主页
+                    el.passScreen.classList.add('hidden');
+                    el.globalThemeBtn.classList.add('hidden');
+                    el.gameContent.classList.remove('hidden');
+                    updateUnitOptions(true);
+                });
             } else {
-                document.documentElement.classList.remove('dark');
+                el.passInp.classList.add('shake');
+                el.passwordError.classList.remove('hidden');
+                el.passInp.value = '';
+                setTimeout(() => el.passInp.classList.remove('shake'), 400);
+            }
+        }
+
+        function loadSavedPreferences() {
+            const theme = localStorage.getItem('spell_dark_mode');
+            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            
+            const group = localStorage.getItem('spell_saved_group');
+            if (group && CONFIG.COURSE_DATA[group]) {
+                el.groupSelector.value = group;
+            }
+
+            const wrongs = localStorage.getItem('spell_saved_wrong_words');
+            if (wrongs) {
+                try { 
+                    state.wrongWords = JSON.parse(wrongs); 
+                    updateWrongWordsButton(); 
+                } catch(e){}
             }
         }
 
         function toggleDarkMode() {
-            if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('spell_dark_mode', 'light');
-            } else {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('spell_dark_mode', 'dark');
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('spell_dark_mode', isDark ? 'dark' : 'light');
+        }
+
+        /**
+         * Word Logic
+         */
+        
+        async function loadCSV(url, isInitial = false) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error();
+                const text = await response.text();
+                parseRawText(text, isInitial);
+            } catch (err) {
+                showLoadError("未发现词库文件");
             }
         }
 
-        function showToast(msg, duration = 1800) {
-            const toast = document.getElementById('iosToast');
-            toast.innerText = msg;
-            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
-            toast.classList.add('opacity-100', 'translate-y-0');
-            
-            clearTimeout(window.toastTimer);
-            window.toastTimer = setTimeout(() => {
-                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
-                toast.classList.remove('opacity-100', 'translate-y-0');
-            }, duration);
+        function parseRawText(text, isInitial = false) {
+            Papa.parse(text, {
+                header: true, skipEmptyLines: true,
+                complete: r => {
+                    if (r.data?.length > 0) {
+                        el.localDropZone.classList.add('hidden');
+                        state.wordBank = r.data;
+                        state.masteredWords.clear();
+                        state.currentIndex = isInitial ? parseInt(localStorage.getItem('spell_saved_index') || 0) : 0;
+                        if (state.currentIndex >= state.wordBank.length) {
+                            state.currentIndex = 0;
+                        }
+                        showCurrentWord();
+                    } else {
+                        showLoadError("数据空空如也");
+                    }
+                }
+            });
         }
 
-        function setupRubberBandInterception() {
-            document.addEventListener('touchmove', function(e) {
-                if (!e.target.closest('#word-display') && !e.target.closest('#virtualKeyboard')) {
-                    e.preventDefault();
+        function showCurrentWord() {
+            const bank = state.isReviewMode ? state.wrongWords : state.wordBank;
+            document.getElementById('progressTitle').textContent = state.isReviewMode ? "错题消灭进度" : "冒险进度";
+
+            if (bank.length === 0) {
+                if (state.isReviewMode) {
+                    state.isReviewMode = false;
+                    showToast("🎉 错题全部消灭完毕！");
+                    updateWrongWordsButton();
+                } else {
+                    showLoadError("该组词库没有单词哦");
+                    return;
                 }
-            }, { passive: false });
+            }
+
+            if (state.currentIndex >= bank.length) {
+                triggerEpicFireworks();
+                showToast(state.isReviewMode ? "🎉 错题消灭干净！" : "🎉 已完成本单元！");
+                state.currentIndex = 0;
+                if (state.isReviewMode) {
+                    state.isReviewMode = false;
+                    localStorage.removeItem('spell_saved_wrong_words');
+                }
+            }
+
+            const wordObj = bank[state.currentIndex];
+            if (!wordObj?.word) return;
+
+            state.side = 'front';
+            el.cardInner.classList.remove('is-flipped');
+            
+            const cleanWord = wordObj.word.trim();
+            state.currentInputValue = "";
+            el.userInput.value = "";
+            state.maxLetters = cleanWord.replace(/[^a-zA-Z]/g, "").length;
+
+            // UI Update
+            el.emoji.textContent = wordObj.emoji || "📝";
+            renderSlots(cleanWord);
+            updateUIStrings(wordObj);
+            fetchNetworkImage(cleanWord);
+            fetchPhonetic(cleanWord);
+            updateProgress();
+
+            if (!state.isReviewMode && state.mode === 'spell') {
+                localStorage.setItem('spell_saved_index', state.currentIndex);
+            }
+            
+            // 自动发音
+            setTimeout(speakWord, 100);
         }
+
+        function updateUIStrings(wordObj) {
+            if (state.mode === 'spell') {
+                el.desc.textContent = wordObj.desc || "";
+                el.descContainer.classList.add('hidden');
+                el.hintBtn.classList.remove('hidden');
+            } else {
+                el.cardWord.textContent = wordObj.word;
+                el.cardDesc.textContent = wordObj.desc || "";
+            }
+        }
+
+        /**
+         * Interactions
+         */
 
         function filterInput(input) {
-            let val = input.value;
-            val = val.replace(/[^a-zA-Z]/g, '');
-            currentInputValue = val.toLowerCase();
-            if (currentInputValue.length > maxAllowedLetters) {
-                currentInputValue = currentInputValue.slice(0, maxAllowedLetters);
-            }
-            input.value = currentInputValue;
-            updateSlotsHighlight();
+            let val = input.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            if (val.length > state.maxLetters) val = val.slice(0, state.maxLetters);
+            state.currentInputValue = val;
+            input.value = val;
+            updateSlots();
         }
 
-        function updateSlotsHighlight() {
-            const slots = document.getElementById('letterSlots').children;
-            let inputIdx = 0; 
-            for(let i = 0; i < slots.length; i++) {
-                if(slots[i].dataset.special === "true") continue; 
-                
-                const expectedChar = slots[i].dataset.char;
-                if (expectedChar === " ") {
-                    slots[i].innerHTML = "&nbsp;";
-                    slots[i].className = "border-b border-transparent w-3 text-center";
-                    continue; 
-                }
-                
-                if(inputIdx < currentInputValue.length) {
-                    const typedChar = currentInputValue[inputIdx];
-                    if (slots[i].innerText === "•") {
-                        slots[i].classList.add("letter-pop");
-                    }
-                    slots[i].innerText = typedChar;
-                    slots[i].className = "text-[#007aff] dark:text-[#3498ff] font-extrabold border-b-[2px] border-[#007aff] dark:border-[#3498ff] px-0.5 leading-none transition-all duration-150 lowercase letter-pop";
+        function updateSlots() {
+            const slots = el.letterSlots.children;
+            let inputIdx = 0;
+            for (let i = 0; i < slots.length; i++) {
+                if (slots[i].dataset.special === "true") continue;
+                if (slots[i].dataset.char === " ") continue;
+
+                if (inputIdx < state.currentInputValue.length) {
+                    const char = state.currentInputValue[inputIdx];
+                    if (slots[i].textContent === "•") slots[i].classList.add("letter-pop");
+                    slots[i].textContent = char;
+                    slots[i].className = "text-[#007aff] dark:text-[#34a8ff] font-extrabold border-b-[2px] border-[#007aff] dark:border-[#34a8ff] px-0.5 leading-none transition-all lowercase letter-pop";
                 } else {
-                    slots[i].innerText = "•";
+                    slots[i].textContent = "•";
                     slots[i].classList.remove("letter-pop");
-                    slots[i].className = "text-[#8e8e93] dark:text-zinc-500 font-black px-0.5 transition-all duration-150 leading-none opacity-80";
+                    slots[i].className = "text-[#8e8e93] dark:text-zinc-500 font-black px-0.5 transition-all leading-none opacity-80";
                 }
                 inputIdx++;
             }
         }
 
-        function renderVirtualKeyboard() {
-            for(let rowIdx = 0; rowIdx < 3; rowIdx++) {
-                const rowContainer = document.getElementById(`kbd-row${rowIdx+1}`);
-                rowContainer.innerHTML = "";
-                KBD_ROWS[rowIdx].forEach(key => {
-                    const btn = document.createElement('button');
-                    btn.innerText = key;
-                    if(key === "⌫") {
-                        btn.className = "flex-1 bg-[#a4a4aa] dark:bg-zinc-600 text-white font-semibold text-base py-2.5 rounded-lg active:bg-[#8e8e93] transition touch-none shadow-sm";
-                        btn.onclick = (e) => { e.preventDefault(); handleKeyInput("BACKSPACE"); };
-                    } else {
-                        btn.className = "flex-1 bg-white dark:bg-zinc-700 text-iosText-light dark:text-iosText-dark font-medium text-base py-2.5 rounded-lg active:bg-gray-200 transition touch-none shadow-sm";
-                        btn.onclick = (e) => { e.preventDefault(); handleKeyInput(key); };
-                    }
-                    rowContainer.appendChild(btn);
-                });
-            }
-        }
-
-        function handleKeyInput(key) {
-            if(currentMode !== 'spell') return;
-            if(key === "BACKSPACE") {
-                currentInputValue = currentInputValue.slice(0, -1);
-            } else {
-                if(currentInputValue.length < maxAllowedLetters) {
-                    currentInputValue += key.toLowerCase();
-                }
-            }
-            document.getElementById('userInput').value = currentInputValue;
-            updateSlotsHighlight();
-        }
-
-        function playSound(type) {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                if(type === 'success') {
-                    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08);
-                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-                    osc.start(); osc.stop(ctx.currentTime + 0.25);
-                } else {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(180.00, ctx.currentTime);
-                    osc.frequency.linearRampToValueAtTime(120.00, ctx.currentTime + 0.18);
-                    gain.gain.setValueAtTime(0.06, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-                    osc.start(); osc.stop(ctx.currentTime + 0.2);
-                }
-                if (navigator.vibrate) {
-                    if (type === 'success') navigator.vibrate(30); 
-                    else navigator.vibrate([40, 30, 40]);
-                }
-            } catch(e){}
-        }
-
-        function verifyPassword() {
-            const inputStyle = document.getElementById('sitePassword');
-            const errorMsg = document.getElementById('passwordError');
-            const passwordScreen = document.getElementById('passwordScreen');
-            const gameContent = document.getElementById('gameContent');
-            const globalThemeBtn = document.getElementById('globalThemeBtn');
-
-            if (inputStyle.value === CORRECT_PASSWORD) {
-                const player = document.getElementById('globalAudioPlayer');
-                player.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
-                player.play().catch(()=>{});
-
-                passwordScreen.classList.add('hidden');
-                globalThemeBtn.classList.add('hidden'); 
-                gameContent.classList.remove('hidden');
-                document.body.classList.remove('touch-none'); 
-                
-                const savedGroup = localStorage.getItem('spell_saved_group');
-                if (savedGroup && COURSE_DATA[savedGroup]) {
-                    document.getElementById('groupSelector').value = savedGroup;
-                }
-                
-                updateUnitOptions(true); 
-                renderVirtualKeyboard();
-                setupDragAndDrop();
-                setupSwipeGestures(); 
-                setupPhysicalKeyboardListener();
-                setupRubberBandInterception();
-            } else {
-                inputStyle.classList.add('shake'); errorMsg.classList.remove('hidden'); inputStyle.value = '';
-                setTimeout(() => inputStyle.classList.remove('shake'), 400);
-            }
-        }
-
-        function onGroupChange() {
-            isReviewMode = false;
-            masteredWords.clear();
-            const selectValue = document.getElementById('groupSelector').value;
-            localStorage.setItem('spell_saved_group', selectValue);
-            localStorage.removeItem('spell_saved_index'); 
+        function check() {
+            if (state.mode !== 'spell' || state.isTrans) return;
+            const bank = state.isReviewMode ? state.wrongWords : state.wordBank;
             
-            if (COURSE_DATA[selectValue] && COURSE_DATA[selectValue].length > 0) {
-                localStorage.setItem('spell_saved_unit', COURSE_DATA[selectValue][0].value);
+            // Guard against completion state
+            if (!bank || state.currentIndex >= bank.length || !bank[state.currentIndex]) {
+                console.warn('[SpellQuest] Check called after completion.');
+                return;
+            }
+            
+            const target = bank[state.currentIndex].word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            
+            if (state.currentInputValue === target) {
+                state.isTrans = true;
+                playSound('success');
+                el.cardInner.classList.add('celebrate');
+                setTimeout(() => {
+                    el.cardInner.classList.remove('celebrate');
+                    if (state.isReviewMode) {
+                        state.wrongWords.splice(state.currentIndex, 1);
+                        localStorage.setItem('spell_saved_wrong_words', JSON.stringify(state.wrongWords));
+                        updateWrongWordsButton();
+                    } else {
+                        state.currentIndex++;
+                    }
+                    state.isTrans = false;
+                    showCurrentWord();
+                }, 400);
             } else {
-                localStorage.removeItem('spell_saved_unit');
-            }
-            updateUnitOptions(false);
-        }
-
-        function onUnitChange() {
-            isReviewMode = false;
-            masteredWords.clear();
-            localStorage.setItem('spell_saved_unit', document.getElementById('unitSelector').value);
-            localStorage.removeItem('spell_saved_index'); 
-            loadNewUnit();
-        }
-
-        function updateUnitOptions(isInitialLoad = false) {
-            const groupKey = document.getElementById('groupSelector').value;
-            const unitSelector = document.getElementById('unitSelector');
-            unitSelector.innerHTML = "";
-            const units = COURSE_DATA[groupKey] || [];
-            units.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.value; opt.text = item.text;
-                unitSelector.appendChild(opt);
-            });
-
-            if (isInitialLoad) {
-                const savedUnit = localStorage.getItem('spell_saved_unit');
-                if (savedUnit) {
-                    const exists = units.some(u => u.value === savedUnit);
-                    if (exists) unitSelector.value = savedUnit;
+                state.isTrans = true;
+                playSound('error');
+                el.cardInner.classList.add('shake');
+                if (!state.isReviewMode) {
+                    const exists = state.wrongWords.some(w => w.word === bank[state.currentIndex].word);
+                    if (!exists) {
+                        state.wrongWords.push(bank[state.currentIndex]);
+                        localStorage.setItem('spell_saved_wrong_words', JSON.stringify(state.wrongWords));
+                        updateWrongWordsButton();
+                    }
                 }
-                
-                const savedWrongs = localStorage.getItem('spell_saved_wrong_words');
-                if (savedWrongs) {
-                    try { wrongWords = JSON.parse(savedWrongs); updateWrongWordsButton(); } catch(e){}
-                }
+                setTimeout(() => {
+                    el.cardInner.classList.remove('shake');
+                    state.currentInputValue = "";
+                    el.userInput.value = "";
+                    updateSlots();
+                    state.isTrans = false;
+                }, 450);
             }
-            loadNewUnit(isInitialLoad);
         }
 
-        function resetAllProgress() {
-            if (confirm("确定要重置当前单元的学习进度吗？(错题库与掌握度都会清空)")) {
-                currentIndex = 0;
-                isReviewMode = false;
-                masteredWords.clear();
-                localStorage.removeItem('spell_saved_index');
-                showCurrentIndexWord();
-            }
+        /**
+         * Helpers
+         */
+
+        function fetchPhonetic(word) {
+            el.phonetic.textContent = "";
+            el.cardPhonetic.textContent = "";
+            if (!word || word.includes(" ")) return;
+
+            fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.toLowerCase())}`)
+                .then(r => r.json())
+                .then(data => {
+                    const ph = data[0]?.phonetic || data[0]?.phonetics?.find(p => p.text)?.text;
+                    if (ph) {
+                        el.phonetic.textContent = ph;
+                        el.cardPhonetic.textContent = ph;
+                    }
+                }).catch(()=>{});
         }
 
         function fetchNetworkImage(word) {
-            if(!word) return;
-            const cleanWord = word.trim().toLowerCase().replace(/['’]/g, '');
-            const imgEl = document.getElementById('netImage');
-            const container = document.getElementById('netImageContainer');
-            const shimmer = document.getElementById('imageShimmer');
+            state.imgRetryCount = 0;
+            el.netImageContainer.classList.remove('hidden');
+            el.imageShimmer.classList.remove('hidden');
+            el.netImage.classList.add('opacity-0');
+            el.netImage.src = `https://tse1-mm.cn.bing.net/th/id/OIP?q=${encodeURIComponent(word + " illustration")}&w=160&h=160&c=7&rs=1&p=0&dpr=2`;
             
-            container.classList.remove('hidden'); 
-            shimmer.classList.remove('hidden');
-            imgEl.classList.add('opacity-0');
-            imgRetryCount = 0; 
-
-            imgEl.referrerPolicy = "no-referrer"; 
-            imgEl.src = `https://tse1-mm.cn.bing.net/th/id/OIP?q=${encodeURIComponent(cleanWord + " illustration")}&w=160&h=160&c=7&rs=1&p=0&dpr=2`;
-
-            imgEl.onload = function() {
-                shimmer.classList.add('hidden');
-                imgEl.classList.remove('opacity-0');
+            el.netImage.onload = () => {
+                el.imageShimmer.classList.add('hidden');
+                el.netImage.classList.remove('opacity-0');
             };
         }
 
         function handleImageError() {
-            const cleanWord = currentWord.word ? currentWord.word.trim().toLowerCase().replace(/['’]/g, '') : '';
-            const imgEl = document.getElementById('netImage');
-            const container = document.getElementById('netImageContainer');
-            const shimmer = document.getElementById('imageShimmer');
-
-            if (imgRetryCount === 0 && cleanWord) {
-                imgRetryCount = 1;
-                imgEl.src = `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=160&auto=format&fit=crop&sig=${encodeURIComponent(cleanWord)}`;
+            if (state.imgRetryCount === 0) {
+                state.imgRetryCount = 1;
+                el.netImage.src = `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=160&auto=format&fit=crop`;
             } else {
-                container.classList.add('hidden'); 
-                shimmer.classList.add('hidden');
+                el.netImageContainer.classList.add('hidden');
             }
-        }
-
-        function fetchPhonetic(word) {
-            const phoneticEl = document.getElementById('phonetic');
-            const cardPhoneticEl = document.getElementById('cardPhonetic');
-            phoneticEl.innerText = ""; 
-            cardPhoneticEl.innerText = "";
-
-            if (!word) return;
-            if (word.trim().includes(" ")) return; 
-
-            const cleanWord = word.trim().toLowerCase().replace(/[^a-zA-Z']/g, '');
-            const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`;
-            
-            fetch(url)
-                .then(res => {
-                    if (!res.ok) throw new Error();
-                    return res.json();
-                })
-                .then(data => {
-                    if (data && data[0] && data[0].phonetic) {
-                        const ph = data[0].phonetic;
-                        phoneticEl.innerText = ph; cardPhoneticEl.innerText = ph;
-                    } else if (data && data[0] && data[0].phonetics) {
-                        const validPh = data[0].phonetics.find(p => p.text);
-                        if (validPh) {
-                            phoneticEl.innerText = validPh.text; cardPhoneticEl.innerText = validPh.text;
-                        }
-                    }
-                })
-                .catch(() => {
-                    phoneticEl.innerText = ""; cardPhoneticEl.innerText = "";
-                });
-        }
-
-        function parseRawText(text, isInitialLoad = false) {
-            Papa.parse(text, {
-                header: true, skipEmptyLines: true,
-                complete: r => { 
-                    if(r.data && r.data.length > 0) {
-                        document.getElementById('localDropZone').classList.add('hidden');
-                        wordBank = r.data; 
-                        masteredWords.clear();
-                        if (isInitialLoad) {
-                            const savedIndex = localStorage.getItem('spell_saved_index');
-                            currentIndex = savedIndex ? parseInt(savedIndex, 10) : 0;
-                        } else {
-                            currentIndex = 0;
-                        }
-                        showCurrentIndexWord(); 
-                    } else { showLoadError("数据空空如也"); }
-                }
-            });
-        }
-
-        function loadCSV(fileName, isInitialLoad = false) {
-            fetch(fileName)
-                .then(r => { if (!r.ok) throw new Error(); return r.text(); })
-                .then(t => parseRawText(t, isInitialLoad))
-                .catch(() => { showLoadError("未自动发现词库文件"); });
-        }
-
-        function showLoadError(msg) {
-            document.getElementById('desc').innerText = msg;
-            document.getElementById('descContainer').classList.remove('hidden');
-            document.getElementById('hintBtn').classList.add('hidden');
-            document.getElementById('emoji').innerText = "📂";
-            document.getElementById('netImageContainer').classList.add('hidden');
-            document.getElementById('letterSlots').innerHTML = "";
-            document.getElementById('localDropZone').classList.remove('hidden');
-        }
-
-        function loadNewUnit(isInitialLoad = false) {
-            const fileName = document.getElementById('unitSelector').value;
-            if(fileName) {
-                const selector = document.getElementById('unitSelector');
-                setTimeout(() => {
-                    if (selector.selectedIndex >= 0) {
-                        document.getElementById('activeUnitName').innerText = selector.options[selector.selectedIndex].text;
-                    }
-                }, 100);
-                loadCSV(fileName, isInitialLoad);
-            }
-        }
-
-        function switchMode(mode) {
-            currentMode = mode;
-            cardSide = 'front';
-            document.getElementById('cardInner').classList.remove('is-flipped');
-            
-            const spellBtn = document.getElementById('mode-spell-btn');
-            const cardBtn = document.getElementById('mode-card-btn');
-            const kbdArea = document.getElementById('virtualKeyboard');
-            const spellActions = document.getElementById('spellActionButtons');
-            const cardFrontActions = document.getElementById('cardFrontActionButtons');
-            const hintBtn = document.getElementById('hintBtn');
-            const slotsArea = document.getElementById('letterSlots');
-            const indicator = document.getElementById('segment-indicator');
-
-            if(mode === 'spell') {
-                indicator.style.transform = 'translateX(0%)';
-                spellBtn.className = "flex-1 rounded-[8px] font-bold text-[10px] transition-colors duration-200 text-iosText-light dark:text-iosText-dark relative z-10";
-                cardBtn.className = "flex-1 rounded-[8px] font-medium text-[10px] transition-colors duration-200 text-gray-400 dark:text-gray-500 relative z-10";
-                
-                kbdArea.classList.remove('hidden');
-                spellActions.classList.remove('hidden');
-                cardFrontActions.classList.add('hidden');
-                hintBtn.classList.remove('hidden');
-                slotsArea.classList.remove('hidden');
-                document.getElementById('descContainer').classList.add('hidden');
-                setTimeout(() => document.getElementById('userInput').focus(), 200);
-            } else {
-                indicator.style.transform = 'translateX(100%)';
-                spellBtn.className = "flex-1 rounded-[8px] font-medium text-[10px] transition-colors duration-200 text-gray-400 dark:text-gray-500 relative z-10";
-                cardBtn.className = "flex-1 rounded-[8px] font-bold text-[10px] transition-colors duration-200 text-iosText-light dark:text-iosText-dark relative z-10";
-                
-                kbdArea.classList.add('hidden');
-                spellActions.classList.add('hidden');
-                cardFrontActions.classList.remove('hidden');
-                hintBtn.classList.add('hidden');
-                slotsArea.classList.add('hidden');
-            }
-            renderCurrentWordState();
-            updateProgress();
-        }
-
-        function showCurrentIndexWord() {
-            let activeBank = isReviewMode ? wrongWords : wordBank;
-            document.getElementById('progressTitle').innerText = isReviewMode ? "错题消灭进度" : "冒险进度";
-
-            if(activeBank.length === 0 && isReviewMode) {
-                triggerEpicFireworks();
-                showToast("🎉 太牛了！错题库已经消灭干净！");
-                isReviewMode = false;
-                localStorage.removeItem('spell_saved_wrong_words');
-                document.getElementById('reviewBtn').classList.add('hidden');
-                currentIndex = 0;
-                activeBank = wordBank;
-            }
-
-            if(currentIndex >= activeBank.length && activeBank.length > 0) {
-                if(isReviewMode) {
-                    triggerEpicFireworks();
-                    showToast("🎉 错题库消灭干净！");
-                    isReviewMode = false;
-                    wrongWords = [];
-                    localStorage.removeItem('spell_saved_wrong_words');
-                    document.getElementById('reviewBtn').classList.add('hidden');
-                } else {
-                    triggerEpicFireworks();
-                    showToast("🎉 太棒了！已顺利完成本单元卡片！");
-                }
-                currentIndex = 0;
-                activeBank = isReviewMode ? wrongWords : wordBank;
-            }
-
-            if(currentIndex < 0) currentIndex = 0;
-            if (!isReviewMode && currentMode === 'spell') localStorage.setItem('spell_saved_index', currentIndex);
-
-            currentWord = activeBank[currentIndex];
-            if(!currentWord || !currentWord.word) return;
-            currentWord.word = currentWord.word.trim();
-
-            cardSide = 'front';
-            document.getElementById('cardInner').classList.remove('is-flipped');
-
-            document.getElementById('emoji').innerText = currentWord.emoji || "📝";
-            fetchNetworkImage(currentWord.word); 
-            fetchPhonetic(currentWord.word);
-            
-            currentInputValue = "";
-            document.getElementById('userInput').value = "";
-            
-            maxAllowedLetters = (currentWord.word || "").replace(/[^a-zA-Z]/g, "").length;
-            
-            renderSlots(currentWord.word);
-            renderCurrentWordState();
-            
-            if (currentMode === 'spell') {
-                speakWord();
-            }
-            updateProgress();
-        }
-
-        function renderCurrentWordState() {
-            if(!currentWord || !currentWord.word) return;
-            const descEl = document.getElementById('desc');
-            const cardWordEl = document.getElementById('cardWord');
-            const cardDescEl = document.getElementById('cardDesc');
-
-            if(currentMode === 'spell') {
-                descEl.innerText = currentWord.desc || "";
-                document.getElementById('descContainer').classList.add('hidden'); 
-                document.getElementById('hintBtn').classList.remove('hidden');
-            } else {
-                cardWordEl.innerText = currentWord.word;
-                cardDescEl.innerText = currentWord.desc || "";
-            }
-        }
-
-        function flipToBack() {
-            if(currentMode !== 'card') return;
-            cardSide = 'back';
-            renderCurrentWordState();
-            document.getElementById('cardInner').classList.add('is-flipped');
-            speakWord(); 
-        }
-
-        function handleAnkiFeedback(level) {
-            if (currentMode !== 'card') return;
-            let activeBank = isReviewMode ? wrongWords : wordBank;
-            const cardInner = document.getElementById('cardInner');
-            
-            if (level === 'again') {
-                const current = activeBank.splice(currentIndex, 1)[0];
-                activeBank.push(current);
-                playSound('error');
-                cardInner.classList.add('shake');
-                setTimeout(() => cardInner.classList.remove('shake'), 450);
-            } else if (level === 'good') {
-                currentIndex++;
-            } else if (level === 'easy') {
-                masteredWords.add(currentWord.word);
-                activeBank.splice(currentIndex, 1);
-                playSound('success');
-                cardInner.classList.add('celebrate');
-                setTimeout(() => cardInner.classList.remove('celebrate'), 400);
-            }
-
-            cardSide = 'front';
-            
-            if (activeBank.length === 0) {
-                document.getElementById('progressText').innerText = `已掌握: 100%`;
-                document.getElementById('progressBar').style.width = `100%`;
-                document.getElementById('navProgress').innerText = `100%`;
-                
-                triggerEpicFireworks();
-                setTimeout(() => {
-                    showToast("🎉 当前所有卡片掌握完成！");
-                    resetMasteredAndReload();
-                }, 400); 
-            } else {
-                if (currentIndex >= activeBank.length) {
-                    currentIndex = 0;
-                }
-                cardInner.classList.remove('is-flipped');
-                setTimeout(() => {
-                    showCurrentIndexWord();
-                }, 150);
-            }
-        }
-
-        function resetMasteredAndReload() {
-            masteredWords.clear();
-            currentIndex = 0;
-            isReviewMode = false;
-            loadNewUnit();
-        }
-
-        function renderSlots(word) {
-            const container = document.getElementById('letterSlots');
-            container.innerHTML = "";
-            if(!word) return;
-
-            const letterCount = word.length;
-            let fontSizeClass = "text-lg";
-            let paddingClass = "px-0.5 min-w-[10px]";
-            if(letterCount > 15) {
-                fontSizeClass = "text-[10px]";
-                paddingClass = "px-px min-w-[5px]";
-            } else if(letterCount > 10) {
-                fontSizeClass = "text-xs";
-                paddingClass = "px-0.5 min-w-[7px]";
-            }
-
-            for(let i = 0; i < word.length; i++) {
-                const char = word[i];
-                const span = document.createElement('span');
-                span.dataset.char = char.toLowerCase();
-                
-                if(/[a-zA-Z]/.test(char)) {
-                    span.innerText = "•";
-                    span.className = `text-[#8e8e93] dark:text-zinc-500 transition-all duration-150 leading-none ${fontSizeClass} ${paddingClass} text-center opacity-80`;
-                } else if(char === " ") {
-                    span.innerHTML = "&nbsp;";
-                    span.className = `border-b border-transparent leading-none ${fontSizeClass} ${paddingClass} w-3 text-center`;
-                } else {
-                    span.innerText = char;
-                    span.className = `text-iosText-light dark:text-iosText-dark font-mono leading-none ${fontSizeClass} px-0.5 min-w-[5px] text-center`;
-                    span.dataset.special = "true";
-                }
-                container.appendChild(span);
-            }
-        }
-
-        document.getElementById('mainCard').addEventListener('click', function(e) {
-            if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
-            handleCardClick();
-        });
-
-        function handleCardClick() {
-            if(currentMode === 'card') {
-                if(cardSide === 'front') {
-                    flipToBack();
-                }
-            } else {
-                document.getElementById('userInput').focus();
-            }
-        }
-
-        function toggleHint() {
-            document.getElementById('descContainer').classList.remove('hidden');
-            document.getElementById('hintBtn').classList.add('hidden');
         }
 
         function speakWord() {
-            if(!currentWord || !currentWord.word) return;
-            const accent = document.querySelector('input[name="accentType"]:checked').value || "2";
-            const player = document.getElementById('globalAudioPlayer');
-            player.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(currentWord.word)}&type=${accent}`;
-            player.play().catch(()=>{});
+            const bank = state.isReviewMode ? state.wrongWords : state.wordBank;
+            const word = bank[state.currentIndex]?.word;
+            if (!word) return;
+            getAudioContext(); // 确保激活
+            const accent = document.querySelector('input[name="accentType"]:checked').value;
+            el.audio.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(word)}&type=${accent}`;
+            el.audio.play().catch(()=>{});
         }
 
-        function check() {
-            if(currentMode !== 'spell' || !currentWord.word) return;
-            
-            const target = currentWord.word.replace(/[^a-zA-Z]/g, '').toLowerCase();
-            const cleanInput = currentInputValue.replace(/[^a-zA-Z]/g, '').toLowerCase();
-            const cardInner = document.getElementById('cardInner');
+        function renderVirtualKeyboard() {
+            CONFIG.KBD_ROWS.forEach((row, i) => {
+                const rowEl = document.getElementById(`kbd-row${i+1}`);
+                rowEl.innerHTML = "";
+                row.forEach(key => {
+                    const btn = document.createElement('button');
+                    btn.textContent = key;
+                    btn.className = key === "⌫" 
+                        ? "flex-1 bg-[#8e8e93] dark:bg-zinc-600 text-white font-bold text-base py-3 rounded-xl shadow-md border border-white/10"
+                        : "flex-1 bg-white/80 dark:bg-[#2c2c2e]/80 text-iosText-light dark:text-iosText-dark font-semibold text-base py-3 rounded-xl shadow-md border border-white/20 dark:border-white/[0.03]";
+                    
+                    // 使用 TouchEnd 加速移动端交互响应，避免延迟
+                    const keyHandler = (e) => {
+                        e.preventDefault();
+                        getAudioContext(); // 用户轻触时保持 AudioContext 激活
+                        handleKeyInput(key === "⌫" ? "BACKSPACE" : key);
+                    };
 
-            if(cleanInput === target) {
-                playSound('success');
-                cardInner.classList.add('celebrate');
-                
-                setTimeout(() => {
-                    cardInner.classList.remove('celebrate');
-                    if(isReviewMode) {
-                        wrongWords.splice(currentIndex, 1);
-                        localStorage.setItem('spell_saved_wrong_words', JSON.stringify(wrongWords));
-                        updateWrongWordsButton();
-                        if (currentIndex >= wrongWords.length && wrongWords.length > 0) {
-                            currentIndex = wrongWords.length - 1;
-                        }
-                    } else {
-                        let activeBank = wordBank;
-                        if(currentIndex === activeBank.length - 1) {
-                             document.getElementById('progressText').innerText = `100%`;
-                             document.getElementById('progressBar').style.width = `100%`;
-                             document.getElementById('navProgress').innerText = `100%`;
-                        }
-                        currentIndex++;
-                    }
-                    showCurrentIndexWord();
-                }, 400);
-            } else {
-                playSound('error');
-                cardInner.classList.add('shake');
-                
-                if(!isReviewMode && !wrongWords.some(w => w.word.toLowerCase().replace(/[^a-zA-Z]/g, '') === target)) {
-                    wrongWords.push(currentWord);
-                    localStorage.setItem('spell_saved_wrong_words', JSON.stringify(wrongWords));
-                    updateWrongWordsButton();
-                }
-                setTimeout(() => {
-                    cardInner.classList.remove('shake');
-                    currentInputValue = "";
-                    document.getElementById('userInput').value = "";
-                    updateSlotsHighlight();
-                }, 400);
+                    btn.addEventListener('touchend', keyHandler);
+                    btn.addEventListener('mousedown', (e) => {
+                        if ('ontouchstart' in window) return; // 避免触摸端二次触发
+                        keyHandler(e);
+                    });
+                    
+                    rowEl.appendChild(btn);
+                });
+            });
+        }
+
+        function handleKeyInput(key) {
+            if (state.mode !== 'spell') return;
+            if (key === "BACKSPACE") {
+                state.currentInputValue = state.currentInputValue.slice(0, -1);
+            } else if (state.currentInputValue.length < state.maxLetters) {
+                state.currentInputValue += key.toLowerCase();
             }
+            el.userInput.value = state.currentInputValue;
+            updateSlots();
+        }
+
+        function handleAnkiFeedback(level) {
+            if (state.isTrans) return;
+            const bank = state.isReviewMode ? state.wrongWords : state.wordBank;
+            if (bank.length === 0) return;
+
+            state.isTrans = true;
+
+            if (level === 'again') {
+                const item = bank.splice(state.currentIndex, 1)[0];
+                bank.push(item);
+                playSound('error');
+                el.cardInner.classList.add('shake');
+                setTimeout(() => el.cardInner.classList.remove('shake'), 450);
+            } else if (level === 'good') {
+                state.currentIndex++;
+            } else if (level === 'easy') {
+                state.masteredWords.add(bank[state.currentIndex].word);
+                bank.splice(state.currentIndex, 1);
+                playSound('success');
+                el.cardInner.classList.add('celebrate');
+                setTimeout(() => el.cardInner.classList.remove('celebrate'), 400);
+            }
+
+            state.side = 'front';
+            setTimeout(() => {
+                el.cardInner.classList.remove('is-flipped');
+                setTimeout(() => {
+                    if (bank.length === 0) {
+                        triggerEpicFireworks();
+                        showToast("🎉 全部掌握！");
+                        resetAllProgress();
+                    } else {
+                        if (state.currentIndex >= bank.length) state.currentIndex = 0;
+                        showCurrentWord();
+                    }
+                    state.isTrans = false;
+                }, 150);
+            }, 250);
+        }
+
+        function renderSlots(word) {
+            el.letterSlots.innerHTML = "";
+            const isLong = word.length > 12;
+            const sizeClass = isLong ? "text-xs" : "text-lg";
+
+            [...word].forEach(char => {
+                const span = document.createElement('span');
+                span.dataset.char = char.toLowerCase();
+                if (/[a-zA-Z]/.test(char)) {
+                    span.textContent = "•";
+                    span.className = `text-[#8e8e93] dark:text-zinc-500 leading-none ${sizeClass} px-0.5 text-center opacity-80`;
+                } else if (char === " ") {
+                    span.innerHTML = "&nbsp;";
+                    span.className = `w-3 border-b border-transparent ${sizeClass}`;
+                } else {
+                    span.textContent = char;
+                    span.dataset.special = "true";
+                    span.className = `text-iosText-light dark:text-iosText-dark font-mono leading-none ${sizeClass} px-0.5`;
+                }
+                el.letterSlots.appendChild(span);
+            });
         }
 
         function updateProgress() {
-            let activeBank = isReviewMode ? wrongWords : wordBank;
-            const total = activeBank.length + masteredWords.size;
-            if(total === 0) {
-                document.getElementById('progressText').innerText = `0%`;
-                document.getElementById('progressBar').style.width = `0%`;
-                document.getElementById('navProgress').innerText = `0%`;
-                return;
-            }
-            if (currentMode === 'spell') {
-                const percent = Math.min(Math.round(((currentIndex) / activeBank.length) * 100), 100);
-                document.getElementById('progressText').innerText = `${percent}%`;
-                document.getElementById('progressBar').style.width = `${percent}%`;
-                document.getElementById('navProgress').innerText = `${percent}%`;
+            const bank = state.isReviewMode ? state.wrongWords : state.wordBank;
+            const total = bank.length + state.masteredWords.size;
+            let percent = 0;
+
+            if (state.mode === 'spell') {
+                percent = bank.length ? Math.round((state.currentIndex / bank.length) * 100) : 100;
             } else {
-                const percent = activeBank.length === 0 ? 100 : Math.min(Math.round((masteredWords.size / total) * 100), 99); 
-                document.getElementById('progressText').innerText = `已掌握: ${percent}% (剩余 ${activeBank.length} 张)`;
-                document.getElementById('progressBar').style.width = `${percent}%`;
-                document.getElementById('navProgress').innerText = `${percent}%`;
+                percent = total ? Math.round((state.masteredWords.size / total) * 100) : 0;
+                if (bank.length === 0) percent = 100;
+            }
+
+            const pStr = `${percent}%`;
+            el.progressBar.style.width = pStr;
+            el.progressText.textContent = state.mode === 'spell' ? pStr : `已掌握: ${pStr} (余 ${bank.length})`;
+            el.navProgress.textContent = pStr;
+        }
+
+        function switchMode(mode) {
+            state.mode = mode;
+            state.side = 'front';
+            el.cardInner.classList.remove('is-flipped');
+            
+            const isSpell = mode === 'spell';
+            el.segmentIndicator.style.transform = isSpell ? 'translateX(0%)' : 'translateX(100%)';
+            el.virtualKeyboard.classList.toggle('hidden', !isSpell);
+            document.getElementById('spellActionButtons').classList.toggle('hidden', !isSpell);
+            document.getElementById('cardFrontActionButtons').classList.toggle('hidden', isSpell);
+            
+            showCurrentWord();
+        }
+
+        function handleCardTouchEnd(e) {
+            if (state.mode !== 'card') return;
+            const diffX = e.changedTouches[0].screenX - state.touch.x;
+            if (Math.abs(diffX) > 60) {
+                if (state.side === 'front') flipToBack();
+                else handleAnkiFeedback(diffX < 0 ? 'again' : 'easy');
             }
         }
 
+        function handlePhysicalKeyboard(e) {
+            if (!el.passScreen.classList.contains('hidden')) return;
+            if (document.activeElement === el.passInp) return;
+
+            if (state.mode === 'card') {
+                if (e.key === ' ') { 
+                    e.preventDefault(); 
+                    if (state.side === 'front') flipToBack(); 
+                }
+                if (state.side === 'back') {
+                    if (e.key === '1') handleAnkiFeedback('again');
+                    if (e.key === '2') handleAnkiFeedback('good');
+                    if (e.key === '3') handleAnkiFeedback('easy');
+                }
+            } else {
+                if (e.key === 'Backspace') { 
+                    e.preventDefault(); 
+                    handleKeyInput('BACKSPACE'); 
+                } else if (e.key === 'Enter') { 
+                    e.preventDefault(); 
+                    check(); 
+                } else if (/^[a-zA-Z]$/.test(e.key)) { 
+                    e.preventDefault(); 
+                    handleKeyInput(e.key); 
+                }
+            }
+        }
+
+        /**
+         * Utilities
+         */
+
+        function onGroupChange() {
+            state.isReviewMode = false;
+            localStorage.setItem('spell_saved_group', el.groupSelector.value);
+            updateUnitOptions();
+        }
+
+        function onUnitChange() {
+            state.isReviewMode = false;
+            localStorage.setItem('spell_saved_unit', el.unitSelector.value);
+            localStorage.removeItem('spell_saved_index');
+            loadCSV(el.unitSelector.value);
+        }
+
+        function updateUnitOptions(isInitial = false) {
+            const group = el.groupSelector.value;
+            const units = CONFIG.COURSE_DATA[group] || [];
+            el.unitSelector.innerHTML = units.map(u => `<option value="${u.value}">${u.text}</option>`).join('');
+
+            if (isInitial) {
+                const saved = localStorage.getItem('spell_saved_unit');
+                if (saved && units.some(u => u.value === saved)) {
+                    el.unitSelector.value = saved;
+                }
+            }
+            
+            el.activeUnitName.textContent = el.unitSelector.options[el.unitSelector.selectedIndex]?.text || "选择单元";
+            loadCSV(el.unitSelector.value, isInitial);
+        }
+
+        function toggleHint() { 
+            el.descContainer.classList.remove('hidden'); 
+            el.hintBtn.classList.add('hidden'); 
+        }
+
+        function flipToBack() { 
+            state.side = 'back'; 
+            el.cardInner.classList.add('is-flipped'); 
+            speakWord(); 
+        }
+        
         function updateWrongWordsButton() {
-            const btn = document.getElementById('reviewBtn');
-            btn.innerText = `温习错题库 (${wrongWords.length})`;
-            if(wrongWords.length > 0) btn.classList.remove('hidden');
-            else btn.classList.add('hidden');
+            const count = state.wrongWords.length;
+            el.reviewBtn.textContent = `温习错题库 (${count})`;
+            el.reviewBtn.classList.toggle('hidden', count === 0);
         }
 
         function reviewWrongWords() {
-            if(wrongWords.length === 0) return;
-            isReviewMode = true;
-            currentIndex = 0;
-            showCurrentIndexWord();
+            if (state.wrongWords.length === 0) return;
+            state.isReviewMode = true;
+            state.currentIndex = 0;
+            showCurrentWord();
+        }
+
+        function resetAllProgress() {
+            if (confirm("确定要重置当前进度吗？")) {
+                state.currentIndex = 0;
+                state.masteredWords.clear();
+                localStorage.removeItem('spell_saved_index');
+                showCurrentWord();
+            }
+        }
+
+        function showToast(msg) {
+            el.iosToast.textContent = msg;
+            el.iosToast.classList.replace('opacity-0', 'opacity-100');
+            el.iosToast.classList.replace('translate-y-2', 'translate-y-0');
+            setTimeout(() => {
+                el.iosToast.classList.replace('opacity-100', 'opacity-0');
+                el.iosToast.classList.replace('translate-y-0', 'translate-y-2');
+            }, 2000);
+        }
+
+        function playSound(type) {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.connect(g);
+                g.connect(ctx.destination);
+                if (type === 'success') {
+                    osc.frequency.setValueAtTime(523, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.2);
+                }
+                g.gain.setValueAtTime(0.1, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch (e) {
+                console.error("Audio playback failed", e);
+            }
+            if (navigator.vibrate) {
+                try {
+                    navigator.vibrate(type === 'success' ? 20 : [40, 40]);
+                } catch (e) {}
+            }
         }
 
         function triggerEpicFireworks() {
-            const duration = 2 * 1000;
-            const end = Date.now() + duration;
+            // Robust fireworks with full protection
+            if (typeof confetti !== 'function') {
+                console.warn('[SpellQuest] Confetti not available. Skipping fireworks.');
+                return;
+            }
+            const end = Date.now() + 1500;
             (function frame() {
-                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.8 } });
-                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.8 } });
+                try {
+                    confetti({ 
+                        particleCount: 6, 
+                        angle: 60, 
+                        spread: 55, 
+                        origin: { x: 0, y: 0.8 } 
+                    });
+                    confetti({ 
+                        particleCount: 6, 
+                        angle: 120, 
+                        spread: 55, 
+                        origin: { x: 1, y: 0.8 } 
+                    });
+                } catch (e) {
+                    console.warn('Fireworks frame error:', e);
+                }
                 if (Date.now() < end) requestAnimationFrame(frame);
             }());
         }
 
-        function setupDragAndDrop() {
-            const zone = document.getElementById('localDropZone');
-            zone.onclick = () => document.getElementById('localFileInp').click();
+        function showLoadError(msg) {
+            el.desc.textContent = msg;
+            el.descContainer.classList.remove('hidden');
+            el.hintBtn.classList.add('hidden');
+            el.emoji.textContent = "📂";
+            el.localDropZone.classList.remove('hidden');
         }
 
         function handleFileSelect(input) {
-            if(input.files && input.files[0]) {
+            if (input.files?.[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) { parseRawText(e.target.result); };
+                reader.onload = e => parseRawText(e.target.result);
                 reader.readAsText(input.files[0]);
             }
         }
 
-        function setupSwipeGestures() {
-            const mainCard = document.getElementById('mainCard');
-            mainCard.addEventListener('touchstart', function(e) {
-                touchStartX = e.changedTouches[0].screenX;
-                touchStartY = e.changedTouches[0].screenY;
-            }, {passive: true});
-
-            mainCard.addEventListener('touchend', function(e) {
-                if (currentMode !== 'card') return; 
-                const touchEndX = e.changedTouches[0].screenX;
-                const touchEndY = e.changedTouches[0].screenY;
-                const diffX = touchEndX - touchStartX;
-                const diffY = touchEndY - touchStartY;
-                
-                if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
-                    if (cardSide === 'back') {
-                        if (diffX < 0) {
-                            handleAnkiFeedback('again'); 
-                        } else {
-                            handleAnkiFeedback('easy');  
-                        }
-                    } else if (cardSide === 'front') {
-                        flipToBack();
-                    }
-                }
-            }, {passive: true});
-        }
-
-        function setupPhysicalKeyboardListener() {
-            window.addEventListener('keydown', function(e) {
-                if (!document.getElementById('passwordScreen').classList.contains('hidden')) return;
-                
-                if (currentMode === 'card') {
-                    if (e.key === ' ') {
-                        e.preventDefault();
-                        if (cardSide === 'front') {
-                            flipToBack();
-                        }
-                    } else if (cardSide === 'back') {
-                        if (e.key === '1') {
-                            e.preventDefault();
-                            handleAnkiFeedback('again');
-                        } else if (e.key === '2') {
-                            e.preventDefault();
-                            handleAnkiFeedback('good');
-                        } else if (e.key === '3') {
-                            e.preventDefault();
-                            handleAnkiFeedback('easy');
-                        }
-                    }
-                    return;
-                }
-                
-                if (currentMode === 'spell') {
-                    if (e.key === 'Backspace') {
-                        e.preventDefault();
-                        handleKeyInput('BACKSPACE');
-                        return;
-                    }
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        check();
-                        return;
-                    }
-                    if (/^[a-zA-Z]$/.test(e.key)) {
-                        e.preventDefault();
-                        handleKeyInput(e.key.toLowerCase());
-                    }
-                }
-            });
-        }
-
-        initDarkMode();
+        // Initialize
+        init();
     </script>
 </body>
 </html>

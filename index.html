@@ -212,7 +212,8 @@
                 <h1 class="text-xs font-bold tracking-tight text-left truncate">SpellQuest</h1>
             </div>
             
-            <div class="relative flex items-center justify-center bg-black/[0.04] dark:bg-white/[0.04] hover:bg-black/[0.08] dark:hover:bg-white/[0.08] active:scale-95 transition-all duration-200 px-3 py-1.5 rounded-xl text-[10px] font-bold text-center cursor-pointer max-w-[160px] flex-1 mx-1.5 border border-black/[0.02] dark:border-white/[0.02]">
+            <!-- 修复点：添加了 unitSelectorTrigger 用于全局代理点击响应 -->
+            <div id="unitSelectorTrigger" class="relative flex items-center justify-center bg-black/[0.04] dark:bg-white/[0.04] hover:bg-black/[0.08] dark:hover:bg-white/[0.08] active:scale-95 transition-all duration-200 px-3 py-1.5 rounded-xl text-[10px] font-bold text-center cursor-pointer max-w-[160px] flex-1 mx-1.5 border border-black/[0.02] dark:border-white/[0.02]">
                 <span id="activeUnitName" class="truncate pr-3 text-gray-800 dark:text-gray-200">正在加载...</span>
                 <span class="absolute right-2 text-[7px] opacity-40">▼</span>
                 <select id="unitSelector" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"></select>
@@ -512,6 +513,21 @@
             el.groupSelector.addEventListener('change', onGroupChange);
             el.unitSelector.addEventListener('change', onUnitChange);
             
+            // 修复点：通过全局触发代理机制，保证 iPhone 桌面版环境下的点击绝对穿透
+            const trigger = document.getElementById('unitSelectorTrigger');
+            if (trigger) {
+                trigger.addEventListener('click', (e) => {
+                    if (e.target === el.unitSelector) return;
+                    el.unitSelector.focus();
+                    const clickEvent = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    el.unitSelector.dispatchEvent(clickEvent);
+                });
+            }
+            
             el.modeSpellBtn.addEventListener('click', () => switchMode('spell'));
             el.modeCardBtn.addEventListener('click', () => switchMode('card'));
             
@@ -744,7 +760,6 @@
             if (state.mode !== 'spell' || state.isTrans) return;
             const bank = state.isReviewMode ? state.wrongWords : state.wordBank;
             
-            // Guard against completion state
             if (!bank || state.currentIndex >= bank.length || !bank[state.currentIndex]) {
                 console.warn('[SpellQuest] Check called after completion.');
                 return;
@@ -836,7 +851,7 @@
             const bank = state.isReviewMode ? state.wrongWords : state.wordBank;
             const word = bank[state.currentIndex]?.word;
             if (!word) return;
-            getAudioContext(); // 确保激活
+            getAudioContext(); 
             const accent = document.querySelector('input[name="accentType"]:checked').value;
             el.audio.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(word)}&type=${accent}`;
             el.audio.play().catch(()=>{});
@@ -853,16 +868,15 @@
                         ? "flex-1 bg-[#8e8e93] dark:bg-zinc-600 text-white font-bold text-base py-3 rounded-xl shadow-md border border-white/10"
                         : "flex-1 bg-white/80 dark:bg-[#2c2c2e]/80 text-iosText-light dark:text-iosText-dark font-semibold text-base py-3 rounded-xl shadow-md border border-white/20 dark:border-white/[0.03]";
                     
-                    // 使用 TouchEnd 加速移动端交互响应，避免延迟
                     const keyHandler = (e) => {
                         e.preventDefault();
-                        getAudioContext(); // 用户轻触时保持 AudioContext 激活
+                        getAudioContext(); 
                         handleKeyInput(key === "⌫" ? "BACKSPACE" : key);
                     };
 
                     btn.addEventListener('touchend', keyHandler);
                     btn.addEventListener('mousedown', (e) => {
-                        if ('ontouchstart' in window) return; // 避免触摸端二次触发
+                        if ('ontouchstart' in window) return; 
                         keyHandler(e);
                     });
                     
@@ -1120,7 +1134,6 @@
         }
 
         function triggerEpicFireworks() {
-            // Robust fireworks with full protection
             if (typeof confetti !== 'function') {
                 console.warn('[SpellQuest] Confetti not available. Skipping fireworks.');
                 return;
